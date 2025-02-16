@@ -1,0 +1,116 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Roles {
+  ADMIN
+  MANAGER
+  USER
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum EmailStatus {
+  SENT
+  FAILED
+  PENDING
+}
+
+model User {
+  id                        Int       @id @default(autoincrement())
+  username                  String    @unique
+  email                     String    @unique
+  firstName                 String
+  lastName                  String
+  profilePictureUrl         String?
+  dateOfHire                DateTime  @default(now())
+  hiredBy                   User?     @relation("HiredByUser", fields: [hiredById], references: [id])
+  hiredById                 Int?
+  isActive                  Boolean   @default(false)
+  role                      Roles
+  address                   String
+  dateOfBirth               DateTime
+  password                  String
+  passwordResetToken        String?    @unique
+  passwordResetTokenExpiry  DateTime?
+  failedLoginAttempts       Int        @default(0)
+  isSuspended               Boolean    @default(false)
+  suspendedUntil            DateTime?
+  lastPasswordChangeAt      DateTime   @default(now())
+  passwordExpiresAt         DateTime
+
+  // Relationships
+  securityQuestions         UserSecurityQuestion[]
+  passwordHistory           PasswordHistory[]
+  accessRequests            AccessRequest[]
+  user User[] @relation("HiredByUser")
+
+  @@map("users")
+}
+
+model PasswordHistory {
+  id           Int   @id @default(autoincrement())
+  userId       Int 
+  oldPassword  String
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_history")
+}
+
+model AccessRequest {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  requestedAt DateTime @default(now())
+  status      RequestStatus @default(PENDING)
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("access_requests")
+}
+
+model SecurityQuestion {
+  id            Int      @id @default(autoincrement())
+  question       String   @unique
+
+  userSecurityQuestions     UserSecurityQuestion[]
+
+  @@map("security_questions")
+}
+
+
+model UserSecurityQuestion {
+  user                      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                    Int
+  questionId                Int
+  answerHash                String
+
+  securityQuestion          SecurityQuestion    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, questionId])
+  @@map("user_security_questions")
+}
+
+model ErrorMessage {
+  errorCode      String   @id
+  message        String
+  httpStatusCode Int
+
+  @@map("error_messages")
+}

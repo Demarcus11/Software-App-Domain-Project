@@ -1,7 +1,8 @@
+"use client";
+
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -10,25 +11,67 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { User } from "lucide-react";
+import { User, Users, Home, KeyRound } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import logo from "@/public/logo.png";
+import { useEffect, useState } from "react";
 
-const items = [
+interface MenuItem {
+  icon: React.ComponentType;
+  label: string;
+  href: string;
+  visible: string[];
+}
+
+interface MenuGroup {
+  title: string;
+  items: MenuItem[];
+}
+
+const items: MenuGroup[] = [
   {
-    title: "View users",
-    url: "/users",
-    icon: User,
-  },
-  {
-    title: "Create users",
-    url: "/users/create",
-    icon: User,
+    title: "Menu",
+    items: [
+      {
+        icon: Home,
+        label: "Home",
+        href: "/admin",
+        visible: ["ADMIN", "USER", "MANAGER"],
+      },
+      {
+        icon: Users,
+        label: "View employees",
+        href: "/employees",
+        visible: ["ADMIN"],
+      },
+      {
+        icon: User,
+        label: "Create employee",
+        href: "/employees/new",
+        visible: ["ADMIN"],
+      },
+      {
+        icon: KeyRound,
+        label: "Expired passwords",
+        href: "/employees/expired-passwords",
+        visible: ["ADMIN"],
+      },
+    ],
   },
 ];
 
 const AppSidebar = () => {
+  const [role, setRole] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const role: string | undefined = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("role="))
+      ?.split("=")[1];
+    setRole(role);
+  }, []);
+
   return (
     <Sidebar>
       <SidebarContent>
@@ -38,23 +81,32 @@ const AppSidebar = () => {
             <p>AccuBooks</p>
           </Link>
         </SidebarHeader>
-        <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {items.map((i) => (
+          <SidebarGroup key={i.title}>
+            <>
+              <SidebarGroupLabel>{i.title}</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {i.items.map((item) => {
+                    if (role && item.visible.includes(role)) {
+                      return (
+                        <SidebarMenuItem key={item.label}>
+                          <SidebarMenuButton asChild>
+                            <Link href={item.href}>
+                              <item.icon />
+                              <span>{item.label}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    }
+                    return null;
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
     </Sidebar>
   );
