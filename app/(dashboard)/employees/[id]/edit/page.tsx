@@ -1,6 +1,6 @@
 "use client";
 
-import EditEmployeeForm from "@/components/forms/edit-employee";
+// import EditEmployeeForm from "@/components/forms/edit-employee";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { Employee } from "@/types";
@@ -9,22 +9,6 @@ import { useParams } from "next/navigation";
 const EditEmployeePage = () => {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const { id } = useParams();
-
-  useEffect(() => {
-    const fetchEmployee = async () => {
-      try {
-        const response = await fetch(`/api/employees/${id}`);
-        if (!response.ok) throw new Error("Failed to fetch employees");
-        const data = await response.json();
-        setEmployee(data);
-      } catch (error) {
-        console.error(error);
-        // setError(err instanceof Error ? err.message : "An error occurred");
-      }
-    };
-
-    fetchEmployee();
-  }, []);
 
   return (
     <div className="grid gap-4">
@@ -44,7 +28,7 @@ const EditEmployeePage = () => {
         </div>
       </div>
 
-      <EditEmployeeForm employee={employee} />
+      {/* <EditEmployeeForm /> */}
     </div>
   );
 };
