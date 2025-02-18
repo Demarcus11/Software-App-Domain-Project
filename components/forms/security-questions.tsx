@@ -36,8 +36,8 @@ const SecurityQuestionsForm = () => {
     SecurityQuestion[]
   >([]);
   const router = useRouter();
-
-  const token = useParams().token;
+  const params = useParams();
+  const token = params.token;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -101,7 +101,9 @@ const SecurityQuestionsForm = () => {
         return;
       }
 
-      // router.push("/reset-password");
+      const data = await response.json();
+
+      router.push(`/reset-password/${token}`);
     } catch (error) {
       form.setError("root", {
         type: "server",

@@ -3,14 +3,14 @@ import prisma from "@/lib/prisma";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = Number(params.id);
-
   try {
+    const { id } = await params;
+
     const userSecurityQuestions = await prisma.userSecurityQuestion.findMany({
       where: {
-        userId: id,
+        userId: parseInt(id),
       },
     });
 

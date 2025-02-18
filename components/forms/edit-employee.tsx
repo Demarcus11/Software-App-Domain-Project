@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useRef } from "react";
 
 import {
   Form,
@@ -16,17 +15,7 @@ import {
 
 import { Switch } from "@/components/ui/switch";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -42,30 +31,19 @@ const formSchema = z.object({
   role: z.string(),
   email: z.string().min(1, "Email is Required").email("Invalid email"),
   address: z.string().min(1, "Address is required"),
-  suspendedUntil: z.string().optional(),
+  suspendedUntil: z.date().optional().nullable(),
   isActive: z.boolean(),
-  hiredBy: z.string().optional(),
-  dateOfHire: z.string().optional(),
-  profilePictureUrl: z.union([z.string(), z.instanceof(File)]).optional(),
-  securityQuestions: z
-    .array(
-      z.object({
-        questionId: z.string(),
-        answer: z.string(),
-      })
-    )
-    .optional(),
-  dateOfBirth: z.string().optional(),
+  hiredBy: z.string().optional().nullable(),
+  dateOfHire: z.date().optional().nullable(),
+  profilePictureUrl: z
+    .union([z.string(), z.instanceof(File)])
+    .optional()
+    .nullable(),
+  dateOfBirth: z.date().optional().nullable(),
 });
 
 const EditEmployeeForm = ({ employee }) => {
-  const formatDateForInput = (
-    date: Date | string | null | undefined
-  ): string => {
-    if (!date) return "";
-    const dateObj = typeof date === "string" ? new Date(date) : date;
-    return dateObj.toISOString().split("T")[0]; // Convert to YYYY-MM-DD format
-  };
+  const id = employee?.id;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -75,56 +53,91 @@ const EditEmployeeForm = ({ employee }) => {
       role: "",
       email: "",
       address: "",
-      suspendedUntil: "",
+      suspendedUntil: null,
       isActive: false,
-      hiredBy: "",
-      dateOfHire: "",
+      dateOfHire: null,
       profilePictureUrl: "",
       username: "",
-      securityQuestions: [
-        { questionId: "", answer: "" },
-        { questionId: "", answer: "" },
-        { questionId: "", answer: "" },
-      ],
-      dateOfBirth: "",
+      dateOfBirth: null,
     },
   });
 
-  const formRef = useRef<HTMLFormElement>(null);
-
   useEffect(() => {
     if (employee) {
-      form.reset({
-        firstName: employee.firstName,
-        lastName: employee.lastName,
-        role: employee.role,
-        email: employee.email,
-        address: employee.address,
-        suspendedUntil: formatDateForInput(employee.suspendedUntil),
-        isActive: employee.isActive,
-        hiredBy: employee.hiredBy?.email,
-        dateOfHire: formatDateForInput(employee.dateOfHire),
-        profilePictureUrl: employee.profilePictureUrl,
-        username: employee.username,
-        securityQuestions: employee.securityQuestions,
-        dateOfBirth: formatDateForInput(employee.dateOfBirth),
+      const transformedEmployee = {
+        ...employee,
+        dateOfBirth: employee.dateOfBirth
+          ? new Date(employee.dateOfBirth)
+          : null,
+        suspendedUntil: employee.suspendedUntil
+          ? new Date(employee.suspendedUntil)
+          : null,
+        dateOfHire: employee.dateOfHire ? new Date(employee.dateOfHire) : null,
+        profilePictureUrl: employee.profilePictureUrl || null,
+      };
+
+      form.reset(transformedEmployee);
+    }
+  }, [employee]);
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      let formData = { ...data };
+
+      if (formData.profilePictureUrl instanceof File) {
+        const uploadData = new FormData();
+        uploadData.append("file", formData.profilePictureUrl);
+
+        // Implement your file upload logic here
+        // const uploadResponse = await fetch('/api/upload', {
+        //   method: 'POST',
+        //   body: uploadData,
+        // });
+        // const { url } = await uploadResponse.json();
+        // formData.profilePictureUrl = url;
+      }
+
+      const formattedData = {
+        ...data,
+        dateOfBirth: data.dateOfBirth?.toISOString(),
+        suspendedUntil: data.suspendedUntil?.toISOString(),
+        dateOfHire: data.dateOfHire?.toISOString(),
+      };
+
+      const response = await fetch(`/api/employees/${id}/edit`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formattedData),
       });
 
-      console.log(employee);
-    }
-  }, [employee, form]);
+      if (!response.ok) {
+        const error = await response.json();
+        if (error.errors) {
+          error.errors.forEach((err: any) => {
+            form.setError(err.path[0], {
+              message: err.message,
+            });
+          });
+          return;
+        }
+        form.setError("root", { message: error.message });
+        return;
+      }
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
-    console.log(data);
-  }
+      const result = await response.json();
+      console.log(result);
+    } catch (error) {
+      form.setError("root", {
+        message: "An unexpected error occurred. Please try again",
+      });
+    }
+  };
 
   return (
     <Form {...form}>
-      <form
-        ref={formRef}
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-8"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
           name="firstName"
@@ -192,7 +205,10 @@ const EditEmployeeForm = ({ employee }) => {
                   <DatePicker
                     wrapperClassName="w-full"
                     selected={field.value ? new Date(field.value) : null}
-                    onChange={(date) => field.onChange(date)}
+                    onChange={(date) => {
+                      console.log("Selected date:", date); // Log the date
+                      field.onChange(date);
+                    }}
                     dateFormat="yyyy-MM-dd"
                     className="w-full px-3 py-1 text-base shadow-sm border-input border rounded-md"
                     showYearDropdown
@@ -252,7 +268,7 @@ const EditEmployeeForm = ({ employee }) => {
           )}
         />
 
-        <FormField
+        {/* <FormField
           control={form.control}
           name="hiredBy"
           render={({ field }) => (
@@ -264,7 +280,7 @@ const EditEmployeeForm = ({ employee }) => {
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
 
         <FormField
           control={form.control}
@@ -318,27 +334,7 @@ const EditEmployeeForm = ({ employee }) => {
           )}
         />
 
-        <AlertDialog>
-          <AlertDialogTrigger className="bg-primary text-primary-foreground shadow hover:bg-primary/90 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-9 px-4 py-2">
-            Submit
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirm changes?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to confirm the changes?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => formRef.current?.requestSubmit()}
-              >
-                Confirm
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <Button type="submit">Update</Button>
       </form>
     </Form>
   );

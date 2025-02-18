@@ -5,12 +5,12 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = parseInt(params.id);
-
   try {
-    const user = await getUserById(id);
+    const { id } = await params;
+
+    const user = await getUserById(parseInt(id));
 
     if (!user) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });

@@ -3,14 +3,14 @@ import prisma from "@/lib/prisma";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const id = Number(params.id);
+  const { id } = await params;
 
   try {
     const employee = await prisma.user.findUnique({
       where: {
-        id,
+        id: parseInt(id),
       },
       include: {
         hiredBy: {

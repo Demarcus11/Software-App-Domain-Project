@@ -16,9 +16,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import decodeToken from "@/lib/decode-token";
+import { getUserById } from "@/lib/db";
+import { Employee } from "@/types";
 
 const Navbar = () => {
   const router = useRouter();
+  const [user, setUser] = useState<Employee | null>(null);
 
   const logout = () => {
     document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
@@ -39,11 +44,13 @@ const Navbar = () => {
         <DropdownMenu>
           <DropdownMenuTrigger className="flex items-center gap-5">
             <div className="grid gap-1">
-              <p className="text-sm">John Doe</p>
-              <p className="text-right text-xs">Admin</p>
+              <p className="text-sm">
+                {user?.firstName} {user?.lastName}
+              </p>
+              <p className="text-right text-xs">{user?.role}</p>
             </div>
             <Avatar>
-              <AvatarImage src="https://github.com/shadcn.png" alt="John Doe" />
+              <AvatarImage src={user?.profilePictureUrl} alt="John Doe" />
               <AvatarFallback className="text-black">JD</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>

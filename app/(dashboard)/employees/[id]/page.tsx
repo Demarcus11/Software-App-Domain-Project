@@ -15,7 +15,7 @@ const ViewEmployeePage = () => {
   const { id } = useParams();
 
   useEffect(() => {
-    const fetchEmployees = async () => {
+    const fetchEmployee = async () => {
       try {
         const response = await fetch(`/api/employees/${id}`);
         if (!response.ok) throw new Error("Failed to fetch employees");
@@ -30,8 +30,15 @@ const ViewEmployeePage = () => {
       }
     };
 
-    fetchEmployees();
+    fetchEmployee();
   }, []);
+
+  const formatDate = (date: Date) => {
+    return new Intl.DateTimeFormat("en-US", {
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(date);
+  };
 
   return (
     <div className="grid gap-4">
@@ -63,7 +70,7 @@ const ViewEmployeePage = () => {
                 <p className="text-lg font-medium">
                   {employee?.firstName} {employee?.lastName}
                 </p>
-                <p className="text-sm">{employee?.userType}</p>
+                <p className="text-sm">{employee?.role}</p>
               </>
             )}
           </div>
@@ -86,14 +93,14 @@ const ViewEmployeePage = () => {
         {[
           { label: "First Name", value: employee?.firstName },
           { label: "Last Name", value: employee?.lastName },
-          { label: "Role", value: employee?.userType },
+          { label: "Role", value: employee?.role },
           { label: "Email", value: employee?.email },
           { label: "Address", value: employee?.address },
           {
             label: "Suspended until",
             value: employee?.suspendedUntil
-              ? "No Suspension"
-              : employee?.suspendedUntil,
+              ? formatDate(new Date(employee.suspendedUntil))
+              : "N/A",
           },
           { label: "Is Active?", value: employee?.isActive ? "Yes" : "No" },
           {

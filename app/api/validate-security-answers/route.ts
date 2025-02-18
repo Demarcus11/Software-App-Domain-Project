@@ -8,16 +8,13 @@ export async function POST(request: Request) {
   try {
     const { token, answers } = await request.json();
 
-    console.log(answers);
-
     const user = await prisma.user.findFirst({
       where: { passwordResetToken: token },
-      include: { securityQuestions: true },
     });
 
     if (!user) {
       return NextResponse.json(
-        { message: "Invalid token, please try again" },
+        { message: "Invalid token, try again" },
         { status: 400 }
       );
     }
@@ -27,38 +24,37 @@ export async function POST(request: Request) {
         userId: user.id,
       },
       select: {
-        securityQuestion: {
-          select: {
-            id: true,
-          },
-        },
+        questionId: true,
         answerHash: true,
       },
     });
 
-    userSecurityQuestions.forEach((userSecurityQuestion, index) => {
-      const answer = answers[index].answer;
-      const answerHash = userSecurityQuestion.answerHash;
-      const isValid = bcrypt.compareSync(answer, answerHash);
+    for (const userAnswer of answers) {
+      const securityQuestion = userSecurityQuestions.find(
+        (q) => q.questionId === userAnswer.questionId
+      );
 
-      if (!isValid) {
+      if (!securityQuestion) {
         return NextResponse.json(
-          { message: "Invalid answer, please try again" },
+          { message: "Invalid question ID, please try again" },
           { status: 400 }
         );
       }
 
-      return;
-    });
+      const isValid = bcrypt.compareSync(
+        userAnswer.answer,
+        securityQuestion.answerHash
+      );
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        passwordResetToken: null,
-      },
-    });
+      if (!isValid) {
+        return NextResponse.json(
+          { message: "One or more answers is incorrect" },
+          { status: 400 }
+        );
+      }
+    }
 
-    return NextResponse.json({});
+    return NextResponse.json({ message: "Answers validated successfully" });
   } catch (error) {
     return NextResponse.json(
       { message: "An unexpected error occurred, please try again later" },

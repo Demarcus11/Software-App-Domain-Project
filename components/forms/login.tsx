@@ -74,11 +74,9 @@ const LoginForm = () => {
       } else if (user.role === "MANAGER") {
         router.push("/manager");
       } else if (user.role === "USER") {
-        console.log("Redirecting to /user");
         router.push("/user");
       }
     } catch (error) {
-      console.error(error);
       form.setError("root", {
         message: "An unexpected error occurred. Please try again",
       });

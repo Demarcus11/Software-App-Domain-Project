@@ -11,7 +11,7 @@ const EditEmployeePage = () => {
   const { id } = useParams();
 
   useEffect(() => {
-    const fetchEmployees = async () => {
+    const fetchEmployee = async () => {
       try {
         const response = await fetch(`/api/employees/${id}`);
         if (!response.ok) throw new Error("Failed to fetch employees");
@@ -23,7 +23,7 @@ const EditEmployeePage = () => {
       }
     };
 
-    fetchEmployees();
+    fetchEmployee();
   }, []);
 
   return (
@@ -40,7 +40,7 @@ const EditEmployeePage = () => {
           <p className="text-lg font-medium">
             {employee?.firstName} {employee?.lastName}
           </p>
-          <p className="text-sm">{employee?.userType}</p>
+          <p className="text-sm">{employee?.role}</p>
         </div>
       </div>
 

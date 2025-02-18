@@ -2,7 +2,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
   Form,
@@ -35,8 +35,8 @@ const formSchema = z.object({
 
 const ResetPasswordForm = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const params = useParams();
+  const token = params.token;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -47,16 +47,13 @@ const ResetPasswordForm = () => {
 
   const resetPassword = async (data: z.infer<typeof formSchema>) => {
     try {
-      const res = await fetch(
-        `http://localhost:5000/api/auth/reset-password?token=${token}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }
-      );
+      const res = await fetch(`/api/reset-password/${token}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
 
       if (!res.ok) {
         const error = await res.json();
@@ -68,7 +65,8 @@ const ResetPasswordForm = () => {
       }
 
       form.reset();
-      return await res.json();
+      const result = await res.json();
+      console.log(result.message);
     } catch (err) {
       console.error(err);
     }
