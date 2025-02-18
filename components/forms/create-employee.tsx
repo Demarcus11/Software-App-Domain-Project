@@ -68,7 +68,7 @@ const formSchema = z.object({
   dateOfBirth: z.string().optional(),
 });
 
-const EditEmployeeForm = ({ employee }) => {
+const EditEmployeeForm = () => {
   const [securityQuestions, setSecurityQuestions] = useState<
     SecurityQuestion[]
   >([]);
