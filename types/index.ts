@@ -1,4 +1,3 @@
-import { SecurityQuestion } from "@/types";
 import { User } from "@prisma/client";
 
 export type Employee = User & {

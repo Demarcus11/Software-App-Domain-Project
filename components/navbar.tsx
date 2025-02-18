@@ -50,7 +50,7 @@ const Navbar = () => {
               <p className="text-right text-xs">{user?.role}</p>
             </div>
             <Avatar>
-              <AvatarImage src={user?.profilePictureUrl} alt="John Doe" />
+              <AvatarImage src="https://github.com/shadcn.png" alt="John Doe" />
               <AvatarFallback className="text-black">JD</AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
