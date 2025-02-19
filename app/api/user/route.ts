@@ -28,12 +28,6 @@ export async function GET(request: NextRequest) {
     where: {
       id: parseInt(userId),
     },
-    select: {
-      firstName: true,
-      lastName: true,
-      role: true,
-      profilePictureUrl: true,
-    },
   });
 
   if (!user) {

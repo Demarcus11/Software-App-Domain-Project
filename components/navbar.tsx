@@ -44,7 +44,12 @@ const Navbar = () => {
         }
 
         const userDetails = await response.json();
-        setUser(userDetails);
+        setUser({
+          firstName: userDetails.firstName,
+          lastName: userDetails.lastName,
+          role: userDetails.role,
+          profilePictureUrl: userDetails.profilePictureUrl,
+        });
         setIsLoading(false);
       } catch (error) {
         console.error(error);

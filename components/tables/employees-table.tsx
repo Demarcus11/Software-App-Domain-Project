@@ -1,15 +1,39 @@
 "use client";
 
-import { DataTable } from "@/components/tables/data-table";
-import { employeeColumns } from "@/components/tables/employee-columns";
+import { useState, useEffect } from "react";
 import { Employee } from "@/types";
+import { employeeColumns } from "./employee-columns";
+import { DataTable } from "@/components/tables/data-table";
 
-interface EmployeesTableProps {
-  data: Employee[];
-}
+export const EmployeesTable = () => {
+  const [employees, setEmployees] = useState<Employee[]>([]);
 
-const EmployeesTable = ({ data }: EmployeesTableProps) => {
-  return <DataTable columns={employeeColumns} data={data} filterBy="email" />;
+  // Fetch employees data
+  const fetchEmployees = async () => {
+    try {
+      const response = await fetch("/api/employees", {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch employees");
+      }
+      const data = await response.json();
+      setEmployees(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchEmployees();
+  }, []);
+
+  return (
+    <DataTable
+      columns={employeeColumns(fetchEmployees)} // Pass fetchEmployees as a prop
+      data={employees}
+      filterBy="email"
+    />
+  );
 };
-
-export default EmployeesTable;
