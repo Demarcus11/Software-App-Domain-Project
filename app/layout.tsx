@@ -17,7 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${GeistSans.className} antialiased`}>
         <div>{children}</div>
-        <Toaster position="top-center" closeButton />
+        <Toaster closeButton />
       </body>
     </html>
   );

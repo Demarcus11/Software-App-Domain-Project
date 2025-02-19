@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { Employee } from "@/types";
 import { useParams } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
+import BackButton from "@/components/back-button";
 
 const ViewEmployeePage = () => {
   const [employee, setEmployee] = useState<Employee | null>(null);
@@ -20,13 +21,10 @@ const ViewEmployeePage = () => {
         const response = await fetch(`/api/employees/${id}`);
         if (!response.ok) throw new Error("Failed to fetch employees");
         const data = await response.json();
-        console.log(data);
         setEmployee(data);
-      } catch (err) {
-        console.error(err);
-        // setError(err instanceof Error ? err.message : "An error occurred");
-      } finally {
         setIsLoading(false);
+      } catch (error) {
+        console.error(error);
       }
     };
 
@@ -42,6 +40,7 @@ const ViewEmployeePage = () => {
 
   return (
     <div className="grid gap-4">
+      <BackButton link="/employees" text="Back to employees" />
       <h1 className="text-xl font-bold">View Employee</h1>
 
       <div className="flex justify-between items-center">

@@ -13,10 +13,6 @@ const editEmployeeSchema = z.object({
   isActive: z.boolean(),
   hiredBy: z.string().optional().nullable(),
   dateOfHire: z.string().optional(),
-  profilePictureUrl: z
-    .union([z.string(), z.instanceof(File)])
-    .optional()
-    .nullable(),
   dateOfBirth: z.string().optional(),
 });
 
@@ -29,20 +25,8 @@ export async function POST(
     const data = await req.json();
     const validatedData = editEmployeeSchema.parse(data);
 
-    const userId = parseInt(id);
-    if (isNaN(userId)) {
-      return NextResponse.json({ message: "Invalid user ID" }, { status: 400 });
-    }
-
-    // Handle file upload for profile picture if needed
-    let profilePictureUrl = validatedData.profilePictureUrl;
-    if (validatedData.profilePictureUrl instanceof File) {
-      // Implement your file upload logic here
-      // profilePictureUrl = await uploadFile(validatedData.profilePictureUrl);
-    }
-
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
+    const user = await prisma.user.update({
+      where: { id: parseInt(id) },
       data: {
         username: validatedData.username,
         email: validatedData.email,
@@ -55,11 +39,17 @@ export async function POST(
         isSuspended: !!validatedData.suspendedUntil,
         suspendedUntil: validatedData.suspendedUntil,
         dateOfHire: validatedData.dateOfHire,
-        profilePictureUrl: profilePictureUrl as string,
       },
     });
 
-    return NextResponse.json(updatedUser);
+    if (user.suspendedUntil && user.suspendedUntil > new Date()) {
+      await prisma.user.update({
+        where: { id: parseInt(id) },
+        data: { isSuspended: true, isActive: false },
+      });
+    }
+
+    return NextResponse.json(user);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
