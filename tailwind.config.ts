@@ -70,6 +70,9 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      width: {
+        wrapper: "min(70rem, 100% - 1rem * 2)",
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],

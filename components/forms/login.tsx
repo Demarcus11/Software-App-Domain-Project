@@ -64,16 +64,13 @@ const LoginForm = () => {
         return;
       }
 
-      const user = await response.json();
+      const result = await response.json();
 
-      document.cookie = `token=${user.token}; path=/; max-age=3600`; // 1 hour
-      document.cookie = `role=${user.role}; path=/; max-age=3600`; // 1 hour
-
-      if (user.role === "ADMIN") {
+      if (result.role === "ADMIN") {
         router.push("/admin");
-      } else if (user.role === "MANAGER") {
+      } else if (result.role === "MANAGER") {
         router.push("/manager");
-      } else if (user.role === "USER") {
+      } else if (result.role === "USER") {
         router.push("/user");
       }
     } catch (error) {

@@ -8,7 +8,7 @@ const AuthLayout = ({ children }: { children: React.ReactNode }) => {
         <Image src={logo} alt="AccuBooks" width={50} />
         <p>AccuBooks</p>
       </nav>
-      <div className="pb-20 max-w-[45rem] mx-auto px-[1rem]">{children}</div>
+      <div className="pb-20">{children}</div>
     </>
   );
 };

@@ -13,22 +13,66 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import decodeToken from "@/lib/decode-token";
-import { getUserById } from "@/lib/db";
-import { Employee } from "@/types";
+
+interface UserDetails {
+  firstName: string;
+  lastName: string;
+  role: string;
+  profilePictureUrl?: string;
+}
 
 const Navbar = () => {
   const router = useRouter();
-  const [user, setUser] = useState<Employee | null>(null);
+  const [user, setUser] = useState<UserDetails | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const logout = () => {
-    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    document.cookie = "role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    router.push("/login");
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const response = await fetch("/api/user", {
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          console.error("Failed to fetch user details");
+          return;
+        }
+
+        const userDetails = await response.json();
+        setUser(userDetails);
+        setIsLoading(false);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchUserDetails();
+  }, []);
+
+  const logout = async () => {
+    try {
+      const response = await fetch("/api/logout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        console.error("Failed to logout");
+        return;
+      }
+
+      router.push("/login");
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -44,15 +88,36 @@ const Navbar = () => {
         <DropdownMenu>
           <DropdownMenuTrigger className="flex items-center gap-5">
             <div className="grid gap-1">
-              <p className="text-sm">
-                {user?.firstName} {user?.lastName}
-              </p>
-              <p className="text-right text-xs">{user?.role}</p>
+              {isLoading ? (
+                <Skeleton className="w-24 h-4" />
+              ) : (
+                <p className="text-sm">
+                  {user?.firstName} {user?.lastName}
+                </p>
+              )}
+              {isLoading ? (
+                <Skeleton className="w-12 h-4 ml-auto" />
+              ) : (
+                <p className="text-sm ml-auto">{user?.role}</p>
+              )}
             </div>
-            <Avatar>
-              <AvatarImage src="https://github.com/shadcn.png" alt="John Doe" />
-              <AvatarFallback className="text-black">JD</AvatarFallback>
-            </Avatar>
+            {isLoading ? (
+              <Skeleton className="w-10 h-10 rounded-full" />
+            ) : (
+              <Avatar>
+                <AvatarImage
+                  src={
+                    user?.profilePictureUrl ||
+                    `https://api.dicebear.com/7.x/initials/svg?seed=${user?.firstName}%${user?.lastName}`
+                  }
+                  alt={`${user?.firstName} ${user?.lastName}`}
+                />
+                <AvatarFallback className="text-black">
+                  {user?.firstName?.[0]}
+                  {user?.lastName?.[0]}
+                </AvatarFallback>
+              </Avatar>
+            )}
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuLabel>My Account</DropdownMenuLabel>

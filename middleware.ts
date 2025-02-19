@@ -1,44 +1,40 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { jwtVerify } from "jose";
 
-export function middleware(request: NextRequest) {
-  const token = request.cookies.get("token")?.value;
-  const role = request.cookies.get("role")?.value;
+export async function middleware(request: NextRequest) {
+  const token = request.cookies.get("jwt")?.value;
 
-  const { pathname } = request.nextUrl;
+  if (!token) {
+    return NextResponse.json(
+      { message: "Unauthorized, no token" },
+      { status: 401 }
+    );
+  }
 
-  const protectedRoutes = [
-    { path: "/admin", roles: ["ADMIN"] },
-    { path: "/manager", roles: ["MANAGER"] },
-    { path: "/user", roles: ["USER"] },
-    { path: "/employees", roles: ["ADMIN"] },
-    { path: "/employees/new", roles: ["ADMIN"] },
-    { path: "/employees/expired-passwords", roles: ["ADMIN"] },
-  ];
-
-  // check if current route is protected
-  const route = protectedRoutes.find((route) =>
-    pathname.startsWith(route.path)
-  );
-
-  if (route) {
-    // if route is protected, check if user is authenticated
-    if (!token) {
-      console.log("No token found");
-      return NextResponse.redirect(new URL("/login", request.url));
+  try {
+    const jwt_secret = process.env.JWT_SECRET;
+    if (!jwt_secret) {
+      throw new Error("JWT_SECRET is not defined");
     }
 
-    // if user is authenticated, check if user has the correct role
-    console.log(role);
-    console.log(route.roles);
-    if (!role || !route.roles.includes(role)) {
-      console.log("User doesn't have the correct role");
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
+    const { payload } = await jwtVerify(
+      token,
+      new TextEncoder().encode(jwt_secret)
+    );
 
-    return NextResponse.next();
+    const response = NextResponse.next();
+
+    return response;
+  } catch (error) {
+    return NextResponse.json(
+      { message: "Unauthorized, invalid token" },
+      { status: 401 }
+    );
   }
 }
 
+// the middleware will only be applied to the routes that match the following configuration
 export const config = {
   matcher: [
     "/admin/:path*",
@@ -47,3 +43,7 @@ export const config = {
     "/employees/:path*",
   ],
 };
+
+// export const config = {
+//   matcher: ["/admin/:path*", "/manager/:path*", "/user/:path*"],
+// };

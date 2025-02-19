@@ -1,5 +1,4 @@
 import bcrypt from "bcryptjs";
-import { sign } from "jsonwebtoken";
 import {
   expirePassword,
   getUserByUsername,
@@ -8,10 +7,26 @@ import {
   suspendUser,
   unsuspendUser,
 } from "@/lib/db";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { SignJWT } from "jose";
+import { cookies } from "next/headers";
 import getSuspensionMessage from "@/lib/get-suspension-message";
+import generateToken from "@/lib/generate-token";
 
 const MAX_FAILED_LOGIN_ATTEMPTS = 3;
+
+const getRedirectionPath = (role: string): string => {
+  switch (role.toLowerCase()) {
+    case "admin":
+      return "/admin";
+    case "manager":
+      return "/manager";
+    case "user":
+      return "/user";
+    default:
+      return "/";
+  }
+};
 
 export async function POST(request: Request) {
   try {
@@ -61,18 +76,18 @@ export async function POST(request: Request) {
 
       const jwt_secret = process.env.JWT_SECRET;
       if (!jwt_secret) {
-        console.error("JWT_SECRET is not defined in the environment variables");
-        return NextResponse.json(
-          { message: "An unexpected error occurred, please try again later" },
-          { status: 500 }
-        );
+        throw new Error("JWT_SECRET is not defined");
       }
 
-      const token = sign({ userId: user.id, role: user.role }, jwt_secret, {
-        expiresIn: "1d",
-      });
+      const tokenResponse = await generateToken(user.id);
+      const token = await tokenResponse.json();
 
-      return NextResponse.json({ token, role: user.role }, { status: 200 });
+      const redirectionPath = getRedirectionPath(user.role);
+
+      return NextResponse.json(
+        { message: "Login successful", role: user.role },
+        { status: 200, headers: tokenResponse.headers }
+      );
     } else {
       const updatedUser = await handleFailedLoginAttempt(user.id);
 

@@ -16,6 +16,7 @@ import Link from "next/link";
 import Image from "next/image";
 import logo from "@/public/logo.png";
 import { useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface MenuItem {
   icon: React.ComponentType;
@@ -63,13 +64,27 @@ const items: MenuGroup[] = [
 
 const AppSidebar = () => {
   const [role, setRole] = useState<string | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const role: string | undefined = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("role="))
-      ?.split("=")[1];
-    setRole(role);
+    const fetchUserDetails = async () => {
+      try {
+        const response = await fetch("/api/user");
+
+        if (!response.ok) {
+          console.error("Failed to fetch user details");
+          return;
+        }
+
+        const userDetails = await response.json();
+        setRole(userDetails.role);
+        setIsLoading(false);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchUserDetails();
   }, []);
 
   return (
@@ -87,21 +102,35 @@ const AppSidebar = () => {
               <SidebarGroupLabel>{i.title}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {i.items.map((item) => {
-                    if (role && item.visible.includes(role)) {
-                      return (
+                  {isLoading
+                    ? i.items.map((item) => (
                         <SidebarMenuItem key={item.label}>
                           <SidebarMenuButton asChild>
-                            <Link href={item.href}>
-                              <item.icon />
-                              <span>{item.label}</span>
-                            </Link>
+                            <div className="flex items-center gap-2">
+                              <Skeleton className="h-6 w-6" />
+                              <Skeleton className="h-4 w-full" />
+                            </div>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
-                      );
-                    }
-                    return null;
-                  })}
+                      ))
+                    : i.items.map((item) => {
+                        if (role && item.visible.includes(role)) {
+                          return (
+                            <SidebarMenuItem key={item.label}>
+                              <SidebarMenuButton asChild>
+                                <Link
+                                  href={item.href}
+                                  className="flex items-center gap-2"
+                                >
+                                  <item.icon />
+                                  <span>{item.label}</span>
+                                </Link>
+                              </SidebarMenuButton>
+                            </SidebarMenuItem>
+                          );
+                        }
+                        return null;
+                      })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </>

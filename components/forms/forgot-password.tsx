@@ -80,7 +80,7 @@ const ForgotPasswordForm = () => {
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle>Forgot Passsword</CardTitle>
+            <CardTitle>Forgot Password</CardTitle>
             <Button
               type="button"
               className="text-center text-sm underline text-primary hover:text-primary/90 hover:bg-transparent bg-transparent shadow-none"
