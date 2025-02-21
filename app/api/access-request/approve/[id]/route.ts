@@ -60,12 +60,15 @@ export async function GET(
     await sendEmail({
       to: user.email,
       subject: "Account Approved",
-      text: `Your account has been approved. Your username is ${user.username} and your password is ${defaultPassword}. Please reset your password within 3 days.`,
+      text: `Your account has been approved. Your username is: ${user.username} and your password is: ${defaultPassword}. Please reset your password within 3 days.`,
     });
 
-    return NextResponse.json({
-      message: `User approved, email sent to ${user.email} with their username and password`,
-    });
+    return NextResponse.json(
+      {
+        message: `User approved, email sent to ${user.email} with their username and password`,
+      },
+      { status: 201 }
+    );
   } catch (error) {
     return NextResponse.json(
       { message: "An unexpected error occurred, please try again later" },

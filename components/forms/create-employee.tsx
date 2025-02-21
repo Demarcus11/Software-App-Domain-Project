@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useRef } from "react";
 
 import {
   Form,
@@ -24,17 +23,7 @@ import {
 
 import PasswordInput from "@/components/password-input";
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -44,27 +33,26 @@ import { Input } from "@/components/ui/input";
 import { Roles } from "@/types/index";
 import { useState, useEffect } from "react";
 import { SecurityQuestion } from "@/types";
+import { toast } from "sonner";
 
 const formSchema = z.object({
-  username: z.string().min(1, "Username is required"),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
-  role: z.string(),
-  email: z.string().min(1, "Email is Required").email("Invalid email"),
+  role: z.string().min(1, "Role is required"),
+  email: z
+    .string()
+    .min(1, "Email is Required")
+    .email("Please enter a valid email"),
   address: z.string().min(1, "Address is required"),
-  suspendedUntil: z.string().optional(),
+  suspendedUntil: z.date().optional().nullable(),
   isActive: z.boolean(),
-  hiredBy: z.string().optional(),
-  dateOfHire: z.string().optional(),
-  securityQuestions: z
-    .array(
-      z.object({
-        questionId: z.string(),
-        answer: z.string(),
-      })
-    )
-    .optional(),
-  dateOfBirth: z.string().optional(),
+  securityQuestions: z.array(
+    z.object({
+      questionId: z.string().min(1, "Security question is required"),
+      answer: z.string().min(1, "Answer is required"),
+    })
+  ),
+  dateOfBirth: z.date({ required_error: "Date of birth is required." }),
 });
 
 const EditEmployeeForm = () => {
@@ -76,6 +64,7 @@ const EditEmployeeForm = () => {
     { id: 2, role: "MANAGER" },
     { id: 3, role: "ADMIN" },
   ]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchSecurityQuestions = async () => {
@@ -106,39 +95,92 @@ const EditEmployeeForm = () => {
       role: "",
       email: "",
       address: "",
-      suspendedUntil: "",
-      isActive: false,
-      hiredBy: "",
-      dateOfHire: "",
-      username: "",
+      suspendedUntil: null,
+      isActive: true,
       securityQuestions: [
         { questionId: "", answer: "" },
         { questionId: "", answer: "" },
         { questionId: "", answer: "" },
       ],
-      dateOfBirth: "",
+      dateOfBirth: undefined,
     },
   });
 
-  const formRef = useRef<HTMLFormElement>(null);
+  const createAccount = async (data: z.infer<typeof formSchema>) => {
+    setIsLoading(true);
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
     console.log(data);
-  }
+
+    try {
+      const response = await fetch("/api/employees/new", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        form.setError("email", {
+          type: "server",
+          message: error.message,
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error(error);
+      form.setError("root", {
+        type: "server",
+        message: "An unexpected error occurred, please try again later",
+      });
+      setIsLoading(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResetButtonClick = () => {
+    form.reset();
+  };
+
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    try {
+      toast.promise(createAccount(data), {
+        loading: "Creating Employee...",
+        success: (responseData) => responseData?.message,
+        error: (err) => err.message,
+        duration: 10000,
+      });
+
+      form.reset();
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <Form {...form}>
-      <form
-        ref={formRef}
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="space-y-8"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
           name="firstName"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>First Name</FormLabel>
+              <div className="flex items-center justify-between">
+                <FormLabel>First Name</FormLabel>
+                <Button
+                  type="button"
+                  className="text-center text-sm underline text-primary hover:text-primary/90 hover:bg-transparent bg-transparent shadow-none"
+                  onClick={handleResetButtonClick}
+                >
+                  Reset
+                </Button>
+              </div>
               <FormControl>
                 <Input placeholder="" {...field} />
               </FormControl>
@@ -222,13 +264,12 @@ const EditEmployeeForm = () => {
               name={`securityQuestions.${index}.questionId`}
               render={({ field }) => (
                 <FormItem className="grid gap-2">
-                  <FormLabel className="text-xs font-medium -mb-2">
-                    {`Security Question ${index + 1}`}
-                  </FormLabel>
+                  <FormLabel>{`Security Question ${index + 1}`}</FormLabel>
                   <FormControl>
                     <Select
+                      key={field.value || `security-${index}`} // Force re-render
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value} // Ensure it resets properly
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select a security question" />
@@ -249,13 +290,12 @@ const EditEmployeeForm = () => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name={`securityQuestions.${index}.answer`}
               render={({ field }) => (
                 <FormItem className="grid gap-2">
-                  <FormLabel className="text-xs font-medium -mb-2 mt-4">
+                  <FormLabel className="mt-4">
                     {`Answer for Question ${index + 1}`}
                   </FormLabel>
                   <FormControl>
@@ -268,27 +308,43 @@ const EditEmployeeForm = () => {
           </div>
         ))}
 
-        <AlertDialog>
-          <AlertDialogTrigger className="bg-primary text-primary-foreground shadow hover:bg-primary/90 inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-9 px-4 py-2">
-            Submit
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirm changes?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to confirm the changes?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => formRef.current?.requestSubmit()}
-              >
-                Confirm
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <FormField
+          control={form.control}
+          name="role"
+          render={({ field }) => (
+            <FormItem className="grid gap-2">
+              <FormLabel>Select an account type</FormLabel>
+              <FormControl>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.map((role) => (
+                      <SelectItem key={role.id} value={role.role}>
+                        {role.role}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {console.log(form.formState.errors)}
+
+        {form.formState.errors.root && (
+          <div className="mt-2 text-destructive">
+            <FormMessage>{form.formState.errors.root.message}</FormMessage>
+          </div>
+        )}
+
+        <Button type="submit">Create Employee</Button>
       </form>
     </Form>
   );
