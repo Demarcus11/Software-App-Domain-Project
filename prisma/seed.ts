@@ -128,7 +128,7 @@ async function main() {
       address: "123 Admin St",
       dateOfBirth: new Date("1990-01-01"),
       isActive: true,
-      password: bcrypt.hashSync("demoPassword", 10),
+      password: bcrypt.hashSync("demoPassword123!", 10),
       passwordExpiresAt: new Date(new Date().getTime() + 24 * 60 * 60 * 1000), // 1 day from now
       securityQuestions: {
         create: [
@@ -170,7 +170,7 @@ async function main() {
       address: "456 Demo St",
       dateOfBirth: new Date("1995-01-01"),
       isActive: true,
-      password: bcrypt.hashSync("demoPassword", 10),
+      password: bcrypt.hashSync("demoPassword123!", 10),
       passwordExpiresAt: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
       securityQuestions: {
         create: [
@@ -212,7 +212,7 @@ async function main() {
       address: "789 Manager St",
       dateOfBirth: new Date("1985-01-01"),
       isActive: true,
-      password: bcrypt.hashSync("demoPassword", 10),
+      password: bcrypt.hashSync("demoPassword123!", 10),
       passwordExpiresAt: new Date(),
       securityQuestions: {
         create: [

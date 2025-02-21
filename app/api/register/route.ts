@@ -43,7 +43,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const defaultPassword = await bcrypt.hash("password", 10);
+    const defaultPassword = await bcrypt.hash("defaultPassword123!", 10);
 
     const passwordExpirationDate = new Date();
     passwordExpirationDate.setDate(passwordExpirationDate.getDate() + 3);

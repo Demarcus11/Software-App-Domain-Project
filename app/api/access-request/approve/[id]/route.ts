@@ -55,12 +55,10 @@ export async function GET(
       },
     });
 
-    const defaultPassword = "password";
-
     await sendEmail({
       to: user.email,
       subject: "Account Approved",
-      text: `Your account has been approved. Your username is: ${user.username} and your password is: password. Please reset your password within 3 days.`,
+      text: `Your account has been approved. Your username is: ${user.username} and your password is: defaultPassword123!. Please reset your password within 3 days.`,
     });
 
     return NextResponse.json(

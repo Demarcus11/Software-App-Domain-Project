@@ -10,7 +10,7 @@ import Image, { StaticImageData } from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface UserCardProps {
-  type: "Users" | "Admins" | "Managers";
+  type: "Accountants" | "Admins" | "Managers";
   bgColor: "primary" | "secondary" | "tertiary";
   image?: StaticImageData;
   amount: number;

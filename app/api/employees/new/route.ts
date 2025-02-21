@@ -43,7 +43,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const defaultPassword = await bcrypt.hash("password", 10);
+    const defaultPassword = await bcrypt.hash("defaultPassword123!", 10);
 
     const passwordExpirationDate = new Date();
     passwordExpirationDate.setDate(passwordExpirationDate.getDate() + 3);
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
     await sendEmail({
       to: user.email,
       subject: "Account Details",
-      text: `Your username is ${user.username} and your password is: ${defaultPassword}. Please reset your password within 3 days.`,
+      text: `Your username is ${user.username} and your password is: defaultPassword123!. Please reset your password within 3 days.`,
     });
 
     return NextResponse.json(

@@ -55,7 +55,7 @@ const AdminPage = () => {
       <ul className="grid md:grid-cols-3 gap-4">
         <li>
           <UserCard
-            type="Users"
+            type="Accountants"
             bgColor="primary"
             image={userCardImageOne}
             amount={users}

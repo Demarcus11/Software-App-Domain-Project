@@ -47,6 +47,7 @@ const Navbar = () => {
           firstName: userDetails.firstName,
           lastName: userDetails.lastName,
           role: userDetails.role,
+          username: userDetails.username,
         });
         setIsLoading(false);
       } catch (error) {
@@ -94,9 +95,7 @@ const Navbar = () => {
               {isLoading ? (
                 <Skeleton className="w-24 h-4" />
               ) : (
-                <p className="text-sm">
-                  {user?.firstName} {user?.lastName}
-                </p>
+                <p className="text-sm">{user?.username}</p>
               )}
               {isLoading ? (
                 <Skeleton className="w-12 h-4 ml-auto" />
