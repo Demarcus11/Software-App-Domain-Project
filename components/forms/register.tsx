@@ -152,7 +152,7 @@ const RegisterForm = () => {
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
       toast.promise(registerAccount(data), {
-        loading: "Sending request to admin at ksuappdomainmanager@gmail.com...",
+        loading: "Sending request to admin at ksuappdomain@yandex.com...",
         success: (responseData) => responseData?.message,
         error: (err) => err.message,
         duration: 10000,
