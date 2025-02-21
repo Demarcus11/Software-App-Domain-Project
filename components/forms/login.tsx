@@ -185,19 +185,19 @@ const LoginForm = () => {
               <div>
                 <p>Demo User:</p>
                 <p>username: demoUser</p>
-                <p>password: demoPassword</p>
+                <p>password: defaultPassword123!</p>
               </div>
 
               <div>
                 <p>Demo Admin:</p>
                 <p>username: demoAdmin</p>
-                <p>password: demoPassword</p>
+                <p>password: defaultPassword123!</p>
               </div>
 
               <div>
                 <p>Demo Manager:</p>
                 <p>username: demoManager</p>
-                <p>password: demoPassword</p>
+                <p>password: defaultPassword123!</p>
               </div>
             </div>
           </CardContent>

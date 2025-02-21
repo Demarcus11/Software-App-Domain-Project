@@ -118,8 +118,8 @@ async function main() {
 
   const admin = await prisma.user.create({
     data: {
-      firstName: "Admin",
-      lastName: "Demo",
+      firstName: "Demo",
+      lastName: "Admin",
       username: "demoAdmin",
       email: "ksuappdomainmanager@gmail.com",
       dateOfHire: new Date(),
