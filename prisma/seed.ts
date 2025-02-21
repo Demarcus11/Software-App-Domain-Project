@@ -121,7 +121,7 @@ async function main() {
       firstName: "Demo",
       lastName: "Admin",
       username: "demoAdmin",
-      email: "ksuappdomainmanager@gmail.com",
+      email: "ksuappdomain@yandex.com",
       dateOfHire: new Date(),
       hiredById: null,
       role: "ADMIN",
