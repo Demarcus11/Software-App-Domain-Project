@@ -19,7 +19,6 @@ interface User {
   role: string;
   isActive: boolean;
   passwordExpiresAt: string;
-  profilePictureUrl: string;
 }
 
 const ExpiredPasswordsTable = ({ data }: ExpiredPasswordsTableProps) => {

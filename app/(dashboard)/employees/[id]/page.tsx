@@ -50,7 +50,9 @@ const ViewEmployeePage = () => {
           ) : (
             <>
               <Avatar className="w-16 h-16">
-                <AvatarImage src={employee?.profilePictureUrl || undefined} />
+                <AvatarImage
+                  src={`https://api.dicebear.com/7.x/initials/svg?seed=${employee?.firstName}%${employee?.lastName}`}
+                />
                 <AvatarFallback className="bg-red-400 text-white">
                   N/A
                 </AvatarFallback>
@@ -110,12 +112,6 @@ const ViewEmployeePage = () => {
             label: "Date of Hire",
             value: employee?.dateOfHire
               ? new Date(employee.dateOfHire).toLocaleDateString()
-              : "N/A",
-          },
-          {
-            label: "Profile Picture",
-            value: employee?.profilePictureUrl
-              ? employee?.profilePictureUrl
               : "N/A",
           },
         ].map((field, index) => (

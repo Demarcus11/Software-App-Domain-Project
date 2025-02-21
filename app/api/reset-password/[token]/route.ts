@@ -42,7 +42,7 @@ export async function POST(
 
     if (passwordMatches.includes(true)) {
       return NextResponse.json(
-        { message: "Previous passwords cannot be used again" },
+        { message: "Previous passwords cannot be used again", error: true },
         { status: 400 }
       );
     }

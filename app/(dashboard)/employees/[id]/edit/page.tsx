@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Employee } from "@/types";
 import { useParams } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
+import BackButton from "@/components/back-button";
 
 const EditEmployeePage = () => {
   const [employee, setEmployee] = useState<Employee | null>(null);
@@ -30,6 +31,7 @@ const EditEmployeePage = () => {
 
   return (
     <div className="grid gap-4">
+      <BackButton link={`/employees/${id}`} text="Back to view employee" />
       <h1 className="text-xl font-medium">Edit Employee</h1>
 
       <div className="flex gap-4 items-center p-4 rounded max-w-max">
@@ -37,7 +39,9 @@ const EditEmployeePage = () => {
           <Skeleton className="w-16 h-16 rounded-full" />
         ) : (
           <Avatar className="w-16 h-16">
-            <AvatarImage src={employee?.profilePictureUrl || undefined} />
+            <AvatarImage
+              src={`https://api.dicebear.com/7.x/initials/svg?seed=${employee?.firstName}%${employee?.lastName}`}
+            />
             <AvatarFallback className="bg-red-400 text-white">
               N/A
             </AvatarFallback>

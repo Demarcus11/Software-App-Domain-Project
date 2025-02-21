@@ -35,6 +35,7 @@ const SecurityQuestionsForm = () => {
   const [securityQuestions, setSecurityQuestions] = useState<
     SecurityQuestion[]
   >([]);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const params = useParams();
   const token = params.token;
@@ -102,6 +103,7 @@ const SecurityQuestionsForm = () => {
       }
 
       const data = await response.json();
+      setIsLoading(false);
 
       router.push(`/reset-password/${token}`);
     } catch (error) {
@@ -163,7 +165,7 @@ const SecurityQuestionsForm = () => {
               )}
 
               <Button type="submit" className="w-full">
-                Continue
+                {isLoading ? "Continue" : "Verifying answers..."}
               </Button>
             </form>
           </Form>

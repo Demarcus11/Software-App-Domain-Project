@@ -2,7 +2,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import {
   Form,
@@ -14,6 +14,10 @@ import {
 import { Button } from "@/components/ui/button";
 import PasswordInput from "@/components/password-input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 const formSchema = z.object({
   password: z
@@ -34,9 +38,10 @@ const formSchema = z.object({
 });
 
 const ResetPasswordForm = () => {
-  const router = useRouter();
   const params = useParams();
   const token = params.token;
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -59,21 +64,33 @@ const ResetPasswordForm = () => {
         const error = await res.json();
         form.setError("root", {
           type: "server",
-          message: error.msg,
+          message: error.message,
         });
         return;
       }
 
       form.reset();
       const result = await res.json();
-      console.log(result.message);
+      return result;
     } catch (err) {
-      console.error(err);
+      form.setError("root", {
+        type: "server",
+        message: "An unexpected error occurred, please try again",
+      });
+      return;
     }
   };
 
   const handleSubmit = async (data: z.infer<typeof formSchema>) => {
-    await resetPassword(data);
+    try {
+      setIsLoading(true);
+      const result = await resetPassword(data);
+      setIsLoading(false);
+      if (!result.error) {
+        toast.success("Password reset successfully");
+        router.push("/login");
+      }
+    } catch (error) {}
   };
 
   return (
@@ -109,12 +126,21 @@ const ResetPasswordForm = () => {
                 </div>
               )}
 
-              <Button
-                className="w-full mt-6"
-                onClick={() => form.formState.errors}
-              >
-                Continue
-              </Button>
+              <div className="text-center grid gap-4">
+                <Button
+                  className="w-full mt-6"
+                  onClick={() => form.formState.errors}
+                >
+                  {isLoading ? "Resetting Password..." : "Reset Password"}
+                </Button>
+
+                <Link
+                  href="/login"
+                  className="text-center underline text-blue-600 hover:text-blue-800 visited:text-purple-600"
+                >
+                  Go to login
+                </Link>
+              </div>
             </form>
           </Form>
         </CardContent>

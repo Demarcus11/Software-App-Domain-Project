@@ -11,7 +11,6 @@ const registerSchema = z.object({
   role: z.enum(["ADMIN", "MANAGER", "USER"]),
   email: z.string().email("Invalid email"),
   address: z.string().min(1, "Address is required"),
-  profilePictureUrl: z.string().optional(),
   dateOfBirth: z.string().transform((str) => new Date(str)),
   securityQuestions: z.array(
     z.object({
@@ -29,7 +28,6 @@ export async function POST(request: Request) {
       role,
       email,
       address,
-      profilePictureUrl,
       securityQuestions,
       dateOfBirth,
     } = await request.json();
@@ -68,10 +66,6 @@ export async function POST(request: Request) {
       );
     }
 
-    if (profilePictureUrl === "") {
-      profilePictureUrl = `https://ui-avatars.com/api/?name=${firstName}+${lastName}&background=random&color=fff`;
-    }
-
     const user = await prisma.user.create({
       data: {
         firstName,
@@ -79,7 +73,6 @@ export async function POST(request: Request) {
         role,
         email,
         address,
-        profilePictureUrl,
         dateOfBirth,
         username,
         password: defaultPassword,

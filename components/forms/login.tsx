@@ -123,9 +123,7 @@ const LoginForm = () => {
                   name="username"
                   render={({ field }) => (
                     <FormItem className="grid gap-2">
-                      <FormLabel className="text-xs font-medium -mb-2">
-                        Username
-                      </FormLabel>
+                      <FormLabel className="-mb-2">Username</FormLabel>
                       <FormControl>
                         <Input
                           className="px-3 py-1 text-base shadow-sm border-input border rounded-md"
@@ -142,9 +140,7 @@ const LoginForm = () => {
                   render={({ field }) => (
                     <FormItem className="grid gap-2">
                       <div className="flex justify-between items-center">
-                        <FormLabel className="text-xs font-medium -mb-2">
-                          Password
-                        </FormLabel>
+                        <FormLabel className="-mb-4">Password</FormLabel>
                         <Link
                           href="/forgot-password"
                           className="text-center text-sm underline text-blue-600 hover:text-blue-800 visited:text-purple-600"

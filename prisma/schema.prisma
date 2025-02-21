@@ -37,7 +37,6 @@ model User {
   email                     String    @unique
   firstName                 String
   lastName                  String
-  profilePictureUrl         String?
   dateOfHire                DateTime  @default(now())
   hiredBy                   User?     @relation("HiredByUser", fields: [hiredById], references: [id])
   hiredById                 Int?

@@ -100,9 +100,7 @@ const ForgotPasswordForm = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem className="grid gap-2">
-                      <FormLabel className="text-xs font-medium -mb-2">
-                        Email
-                      </FormLabel>
+                      <FormLabel className="-mb-2">Email</FormLabel>
                       <FormControl>
                         <Input
                           className="px-3 py-1 text-base shadow-sm border-input border rounded-md"
@@ -119,9 +117,7 @@ const ForgotPasswordForm = () => {
                   name="username"
                   render={({ field }) => (
                     <FormItem className="grid gap-2">
-                      <FormLabel className="text-xs font-medium -mb-2">
-                        Username
-                      </FormLabel>
+                      <FormLabel className="-mb-2">Username</FormLabel>
                       <FormControl>
                         <Input
                           className="px-3 py-1 text-base shadow-sm border-input border rounded-md"

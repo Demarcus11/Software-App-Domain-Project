@@ -23,7 +23,6 @@ interface UserDetails {
   firstName: string;
   lastName: string;
   role: string;
-  profilePictureUrl?: string;
 }
 
 const Navbar = () => {
@@ -48,7 +47,6 @@ const Navbar = () => {
           firstName: userDetails.firstName,
           lastName: userDetails.lastName,
           role: userDetails.role,
-          profilePictureUrl: userDetails.profilePictureUrl,
         });
         setIsLoading(false);
       } catch (error) {
@@ -111,10 +109,7 @@ const Navbar = () => {
             ) : (
               <Avatar>
                 <AvatarImage
-                  src={
-                    user?.profilePictureUrl ||
-                    `https://api.dicebear.com/7.x/initials/svg?seed=${user?.firstName}%${user?.lastName}`
-                  }
+                  src={`https://api.dicebear.com/7.x/initials/svg?seed=${user?.firstName}%${user?.lastName}`}
                   alt={`${user?.firstName} ${user?.lastName}`}
                 />
                 <AvatarFallback className="text-black">

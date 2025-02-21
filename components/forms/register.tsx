@@ -46,16 +46,18 @@ const formSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   role: z.string(),
-  email: z.string().min(1, "Email is Required").email("Invalid email"),
+  email: z
+    .string()
+    .min(1, "Email is Required")
+    .email("Please enter a valid email"),
   address: z.string().min(1, "Address is required"),
-  profilePictureUrl: z.union([z.string(), z.instanceof(File)]).optional(),
   securityQuestions: z.array(
     z.object({
-      questionId: z.string(),
-      answer: z.string(),
+      questionId: z.string().min(1, "Security question is required"),
+      answer: z.string().min(1, "Answer is required"),
     })
   ),
-  dateOfBirth: z.date(),
+  dateOfBirth: z.date({ required_error: "Date of birth is required." }),
 });
 
 const RegisterForm = () => {
@@ -98,7 +100,6 @@ const RegisterForm = () => {
       role: "USER",
       email: "",
       address: "",
-      profilePictureUrl: "",
       securityQuestions: [
         { questionId: "", answer: "" },
         { questionId: "", answer: "" },
@@ -270,32 +271,6 @@ const RegisterForm = () => {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="profilePictureUrl"
-                  render={({ field: { value, onChange, ...field } }) => (
-                    <FormItem className="grid gap-2">
-                      <FormLabel className="-mb-2">
-                        Profile picture URL (optional)
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              onChange(file);
-                            }
-                          }}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 {[0, 1, 2].map((index) => (
                   <div key={index}>
                     <FormField
@@ -303,13 +278,14 @@ const RegisterForm = () => {
                       name={`securityQuestions.${index}.questionId`}
                       render={({ field }) => (
                         <FormItem className="grid gap-2">
-                          <FormLabel className="text-xs font-medium -mb-2">
+                          <FormLabel>
                             {`Security Question ${index + 1}`}
                           </FormLabel>
                           <FormControl>
                             <Select
+                              key={field.value || `security-${index}`} // Force re-render
                               onValueChange={field.onChange}
-                              defaultValue={field.value}
+                              value={field.value} // Ensure it resets properly
                             >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select a security question" />
@@ -330,13 +306,12 @@ const RegisterForm = () => {
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
                       name={`securityQuestions.${index}.answer`}
                       render={({ field }) => (
                         <FormItem className="grid gap-2">
-                          <FormLabel className="text-xs font-medium -mb-2 mt-4">
+                          <FormLabel className="mt-4">
                             {`Answer for Question ${index + 1}`}
                           </FormLabel>
                           <FormControl>
@@ -354,9 +329,7 @@ const RegisterForm = () => {
                   name="role"
                   render={({ field }) => (
                     <FormItem className="grid gap-2">
-                      <FormLabel className="text-xs font-medium -mb-2">
-                        Select an account type
-                      </FormLabel>
+                      <FormLabel>Select an account type</FormLabel>
                       <FormControl>
                         <Select
                           onValueChange={field.onChange}

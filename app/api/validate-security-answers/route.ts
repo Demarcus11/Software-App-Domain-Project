@@ -42,7 +42,7 @@ export async function POST(request: Request) {
       }
 
       const isValid = bcrypt.compareSync(
-        userAnswer.answer,
+        userAnswer.answer.toLowerCase(),
         securityQuestion.answerHash
       );
 

@@ -56,7 +56,6 @@ const formSchema = z.object({
   isActive: z.boolean(),
   hiredBy: z.string().optional(),
   dateOfHire: z.string().optional(),
-  profilePictureUrl: z.union([z.string(), z.instanceof(File)]).optional(),
   securityQuestions: z
     .array(
       z.object({
@@ -111,7 +110,6 @@ const EditEmployeeForm = () => {
       isActive: false,
       hiredBy: "",
       dateOfHire: "",
-      profilePictureUrl: "",
       username: "",
       securityQuestions: [
         { questionId: "", answer: "" },
@@ -211,32 +209,6 @@ const EditEmployeeForm = () => {
                   />
                   <Calendar className="absolute right-5 top-[7px]" size={20} />
                 </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="profilePictureUrl"
-          render={({ field: { value, onChange, ...field } }) => (
-            <FormItem className="grid gap-2">
-              <FormLabel className="-mb-2">
-                Profile picture URL (optional)
-              </FormLabel>
-              <FormControl>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      onChange(file);
-                    }
-                  }}
-                  {...field}
-                />
               </FormControl>
               <FormMessage />
             </FormItem>
