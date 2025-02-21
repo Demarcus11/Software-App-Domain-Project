@@ -23,6 +23,7 @@ interface UserDetails {
   firstName: string;
   lastName: string;
   role: string;
+  username: string;
 }
 
 const Navbar = () => {
