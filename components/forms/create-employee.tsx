@@ -109,8 +109,6 @@ const EditEmployeeForm = () => {
   const createAccount = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);
 
-    console.log(data);
-
     try {
       const response = await fetch("/api/employees/new", {
         method: "POST",

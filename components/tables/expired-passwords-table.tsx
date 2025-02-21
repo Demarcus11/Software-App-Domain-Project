@@ -5,26 +5,17 @@ import { DataTable } from "@/components/tables/data-table";
 import { ExpiredPasswords } from "@/types";
 import { useEffect, useState } from "react";
 import { ExpiredPasswordsColumns } from "@/components/tables/expired-passwords-columns";
+import useWindowSize from "@/hooks/use-window-size";
 
 interface ExpiredPasswordsTableProps {
   data: ExpiredPasswords[];
 }
 
-interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  username: string;
-  role: string;
-  isActive: boolean;
-  passwordExpiresAt: string;
-}
-
 const ExpiredPasswordsTable = ({ data }: ExpiredPasswordsTableProps) => {
-  const columns = ExpiredPasswordsColumns();
+  const windowSize = useWindowSize();
+  const columns = ExpiredPasswordsColumns(windowSize);
 
-  return <DataTable columns={columns} data={data} filterBy="email" />;
+  return <DataTable columns={columns} data={data} filterBy="firstName" />;
 };
 
 export default ExpiredPasswordsTable;

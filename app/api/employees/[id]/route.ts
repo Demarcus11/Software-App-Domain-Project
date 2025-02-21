@@ -44,13 +44,20 @@ export async function DELETE(
   const { id } = await params;
 
   try {
-    await prisma.user.delete({
+    const user = await prisma.user.delete({
       where: {
         id: parseInt(id),
       },
     });
 
-    return NextResponse.json({ success: true });
+    if (!user) {
+      return NextResponse.json(
+        { error: "Employee not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ message: "Employee deleted", success: true });
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to delete employee" },

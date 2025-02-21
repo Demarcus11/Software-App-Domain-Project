@@ -4,9 +4,11 @@ import { useState, useEffect } from "react";
 import { Employee } from "@/types";
 import { employeeColumns } from "./employee-columns";
 import { DataTable } from "@/components/tables/data-table";
+import useWindowSize from "@/hooks/use-window-size";
 
 export const EmployeesTable = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const windowSize = useWindowSize();
 
   // Fetch employees data
   const fetchEmployees = async () => {
@@ -24,16 +26,15 @@ export const EmployeesTable = () => {
     }
   };
 
-  // Fetch data on component mount
   useEffect(() => {
     fetchEmployees();
   }, []);
 
   return (
     <DataTable
-      columns={employeeColumns(fetchEmployees)} // Pass fetchEmployees as a prop
+      columns={employeeColumns(fetchEmployees, windowSize)}
       data={employees}
-      filterBy="email"
+      filterBy="firstName"
     />
   );
 };

@@ -30,38 +30,6 @@ interface MenuGroup {
   items: MenuItem[];
 }
 
-const items: MenuGroup[] = [
-  {
-    title: "Menu",
-    items: [
-      {
-        icon: Home,
-        label: "Home",
-        href: "/admin",
-        visible: ["ADMIN", "USER", "MANAGER"],
-      },
-      {
-        icon: Users,
-        label: "View employees",
-        href: "/employees",
-        visible: ["ADMIN"],
-      },
-      {
-        icon: User,
-        label: "Create employee",
-        href: "/employees/new",
-        visible: ["ADMIN"],
-      },
-      {
-        icon: KeyRound,
-        label: "Expired passwords",
-        href: "/employees/expired-passwords",
-        visible: ["ADMIN"],
-      },
-    ],
-  },
-];
-
 const AppSidebar = () => {
   const [role, setRole] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
@@ -86,6 +54,43 @@ const AppSidebar = () => {
 
     fetchUserDetails();
   }, []);
+
+  const items: MenuGroup[] = [
+    {
+      title: "Menu",
+      items: [
+        {
+          icon: Home,
+          label: "Home",
+          href:
+            role === "ADMIN"
+              ? "/admin"
+              : role === "MANAGER"
+              ? "/manager"
+              : "/user",
+          visible: ["ADMIN", "MANAGER", "USER"],
+        },
+        {
+          icon: Users,
+          label: "View employees",
+          href: "/employees",
+          visible: ["ADMIN"],
+        },
+        {
+          icon: User,
+          label: "Create employee",
+          href: "/employees/new",
+          visible: ["ADMIN"],
+        },
+        {
+          icon: KeyRound,
+          label: "Expired passwords",
+          href: "/employees/expired-passwords",
+          visible: ["ADMIN"],
+        },
+      ],
+    },
+  ];
 
   return (
     <Sidebar>

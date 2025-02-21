@@ -15,8 +15,76 @@ import {
 import Link from "next/link";
 import { ExpiredPasswords } from "@/types";
 
-export const ExpiredPasswordsColumns = () => {
-  const columns: ColumnDef<ExpiredPasswords>[] = [
+export const ExpiredPasswordsColumns = (windowSize: number) => {
+  const mobileColumns: ColumnDef<ExpiredPasswords>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "firstName",
+      header: "First Name",
+    },
+    {
+      accessorKey: "lastName",
+      header: "Last Name",
+    },
+    {
+      accessorKey: "passwordExpiresAt",
+      header: "Password Expired On",
+      cell: ({ row }) => {
+        const expiredPassword = row.original;
+        const date = new Date(expiredPassword.passwordExpiresAt);
+        return <span>{date.toLocaleDateString()}</span>;
+      },
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }) => {
+        const expiredPassword = row.original;
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem>
+                <Link href={`/expired-passwords/${expiredPassword.id}`}>
+                  Email
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
+
+  const desktopColumns: ColumnDef<ExpiredPasswords>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -114,5 +182,5 @@ export const ExpiredPasswordsColumns = () => {
     },
   ];
 
-  return columns;
+  return windowSize > 768 ? desktopColumns : mobileColumns;
 };

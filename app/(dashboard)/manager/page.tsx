@@ -1,5 +1,5 @@
 const ManagerPage = () => {
-  return <p>Manager Page</p>;
+  return <p>Manager Homepage</p>;
 };
 
 export default ManagerPage;
