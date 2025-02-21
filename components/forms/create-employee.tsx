@@ -336,8 +336,6 @@ const EditEmployeeForm = () => {
           )}
         />
 
-        {console.log(form.formState.errors)}
-
         {form.formState.errors.root && (
           <div className="mt-2 text-destructive">
             <FormMessage>{form.formState.errors.root.message}</FormMessage>
