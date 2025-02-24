@@ -2,8 +2,8 @@ import nodemailer from "nodemailer";
 
 interface SendEmailProps {
   text: string;
-  subject: string;
-  to: string;
+  subject: string | undefined;
+  to: string | string[];
 }
 
 const sendEmail = async ({ text, subject, to }: SendEmailProps) => {

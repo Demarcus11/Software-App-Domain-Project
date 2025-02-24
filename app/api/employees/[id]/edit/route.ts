@@ -9,7 +9,8 @@ const editEmployeeSchema = z.object({
   role: z.string(),
   email: z.string().min(1, "Email is Required").email("Invalid email"),
   address: z.string().min(1, "Address is required"),
-  suspendedUntil: z.string().optional().nullable(),
+  suspensionStart: z.string().optional().nullable(),
+  suspensionEnd: z.string().optional().nullable(),
   isActive: z.boolean(),
   hiredBy: z.string().optional().nullable(),
   dateOfHire: z.string().optional(),
@@ -25,6 +26,12 @@ export async function POST(
     const data = await req.json();
     const validatedData = editEmployeeSchema.parse(data);
 
+    if (!validatedData.suspensionStart && !validatedData.suspensionEnd) {
+      validatedData.suspensionStart = null;
+      validatedData.suspensionEnd = null;
+      validatedData.isActive = true;
+    }
+
     const user = await prisma.user.update({
       where: { id: parseInt(id) },
       data: {
@@ -36,13 +43,14 @@ export async function POST(
         address: validatedData.address,
         dateOfBirth: validatedData.dateOfBirth,
         isActive: validatedData.isActive,
-        isSuspended: !!validatedData.suspendedUntil,
-        suspendedUntil: validatedData.suspendedUntil,
+        isSuspended: !!validatedData.suspensionEnd,
+        suspensionStart: validatedData.suspensionStart,
+        suspensionEnd: validatedData.suspensionEnd,
         dateOfHire: validatedData.dateOfHire,
       },
     });
 
-    if (user.suspendedUntil && user.suspendedUntil > new Date()) {
+    if (user.suspensionEnd && new Date(user.suspensionEnd) > new Date()) {
       await prisma.user.update({
         where: { id: parseInt(id) },
         data: { isSuspended: true, isActive: false },

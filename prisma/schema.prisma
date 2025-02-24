@@ -49,7 +49,8 @@ model User {
   passwordResetTokenExpiry  DateTime?
   failedLoginAttempts       Int        @default(0)
   isSuspended               Boolean    @default(false)
-  suspendedUntil            DateTime?
+  suspensionStart           DateTime?
+  suspensionEnd             DateTime?
   lastPasswordChangeAt      DateTime   @default(now())
   passwordExpiresAt         DateTime
 

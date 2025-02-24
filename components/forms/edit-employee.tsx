@@ -28,19 +28,38 @@ import { Employee } from "@/types";
 
 import { toast } from "sonner";
 
-const formSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  role: z.string(),
-  email: z.string().min(1, "Email is Required").email("Invalid email"),
-  address: z.string().min(1, "Address is required"),
-  suspendedUntil: z.date().optional().nullable(),
-  isActive: z.boolean(),
-  hiredBy: z.string().optional().nullable(),
-  dateOfHire: z.date().optional().nullable(),
-  dateOfBirth: z.date().optional().nullable(),
-});
+const formSchema = z
+  .object({
+    username: z.string().min(1, "Username is required"),
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
+    role: z.string(),
+    email: z.string().min(1, "Email is Required").email("Invalid email"),
+    address: z.string().min(1, "Address is required"),
+    suspensionStart: z.date().optional().nullable(),
+    suspensionEnd: z.date().optional().nullable(),
+    isActive: z.boolean(),
+    hiredBy: z.string().optional().nullable(),
+    dateOfHire: z.date().optional().nullable(),
+    dateOfBirth: z.date().optional().nullable(),
+  })
+  .refine(
+    (data) => {
+      // Ensure both suspensionStart and suspensionEnd are either filled or both null
+      if (
+        (data.suspensionStart && !data.suspensionEnd) ||
+        (!data.suspensionStart && data.suspensionEnd)
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message:
+        "Both suspension start and end dates must be filled or both left empty.",
+      path: ["suspensionEnd"], // Highlight the suspensionEnd field in case of error
+    }
+  );
 
 const EditEmployeeForm = () => {
   const { id } = useParams();
@@ -54,7 +73,8 @@ const EditEmployeeForm = () => {
       role: "",
       email: "",
       address: "",
-      suspendedUntil: null,
+      suspensionStart: null,
+      suspensionEnd: null,
       isActive: false,
       dateOfHire: null,
       username: "",
@@ -86,8 +106,11 @@ const EditEmployeeForm = () => {
         role: employee.role,
         email: employee.email,
         address: employee.address || "",
-        suspendedUntil: employee.suspendedUntil
-          ? new Date(employee.suspendedUntil)
+        suspensionStart: employee.suspensionStart
+          ? new Date(employee.suspensionStart)
+          : null,
+        suspensionEnd: employee.suspensionEnd
+          ? new Date(employee.suspensionEnd)
           : null,
         isActive: employee.isActive,
         dateOfHire: employee.dateOfHire ? new Date(employee.dateOfHire) : null,
@@ -105,7 +128,8 @@ const EditEmployeeForm = () => {
     const formattedData = {
       ...formData,
       dateOfBirth: data.dateOfBirth?.toISOString(),
-      suspendedUntil: data.suspendedUntil?.toISOString(),
+      suspensionStart: data.suspensionStart?.toISOString(),
+      suspensionEnd: data.suspensionEnd?.toISOString(),
       dateOfHire: data.dateOfHire?.toISOString(),
     };
 
@@ -232,22 +256,47 @@ const EditEmployeeForm = () => {
 
         <FormField
           control={form.control}
-          name="suspendedUntil"
+          name="suspensionStart"
           render={({ field }) => (
             <FormItem className="grid gap-2">
-              <FormLabel className="-mb-2">Suspensed Until</FormLabel>
+              <FormLabel className="-mb-2">Suspension Start</FormLabel>
               <FormControl>
                 <div className="relative">
                   <DatePicker
                     wrapperClassName="w-full"
                     selected={field.value ? new Date(field.value) : null}
                     onChange={(date) => field.onChange(date)}
-                    dateFormat="yyyy-MM-dd h:mm aa"
-                    className="w-full px-3 py-1 text-base shadow-sm border-input border rounded-md"
+                    dateFormat="yyyy-MM-dd"
+                    className="w-full px-3 py-1 text-base shadow-sm border-input border rounded-md bg-transparent"
                     showYearDropdown
                     yearDropdownItemNumber={100}
                     scrollableYearDropdown
-                    showTimeSelect
+                  />
+                  <Calendar className="absolute right-5 top-[7px]" size={20} />
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="suspensionEnd"
+          render={({ field }) => (
+            <FormItem className="grid gap-2">
+              <FormLabel className="-mb-2">Suspension End</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <DatePicker
+                    wrapperClassName="w-full"
+                    selected={field.value ? new Date(field.value) : null}
+                    onChange={(date) => field.onChange(date)}
+                    dateFormat="yyyy-MM-dd"
+                    className="w-full px-3 py-1 text-base shadow-sm border-input border rounded-md bg-transparent"
+                    showYearDropdown
+                    yearDropdownItemNumber={100}
+                    scrollableYearDropdown
                   />
                   <Calendar className="absolute right-5 top-[7px]" size={20} />
                 </div>

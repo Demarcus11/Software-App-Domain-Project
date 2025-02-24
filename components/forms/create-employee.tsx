@@ -35,25 +35,44 @@ import { useState, useEffect } from "react";
 import { SecurityQuestion } from "@/types";
 import { toast } from "sonner";
 
-const formSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  role: z.string().min(1, "Role is required"),
-  email: z
-    .string()
-    .min(1, "Email is Required")
-    .email("Please enter a valid email"),
-  address: z.string().min(1, "Address is required"),
-  suspendedUntil: z.date().optional().nullable(),
-  isActive: z.boolean(),
-  securityQuestions: z.array(
-    z.object({
-      questionId: z.string().min(1, "Security question is required"),
-      answer: z.string().min(1, "Answer is required"),
-    })
-  ),
-  dateOfBirth: z.date({ required_error: "Date of birth is required." }),
-});
+const formSchema = z
+  .object({
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
+    role: z.string().min(1, "Role is required"),
+    email: z
+      .string()
+      .min(1, "Email is Required")
+      .email("Please enter a valid email"),
+    address: z.string().min(1, "Address is required"),
+    suspensionStart: z.date().optional().nullable(),
+    suspensionEnd: z.date().optional().nullable(),
+    isActive: z.boolean(),
+    securityQuestions: z.array(
+      z.object({
+        questionId: z.string().min(1, "Security question is required"),
+        answer: z.string().min(1, "Answer is required"),
+      })
+    ),
+    dateOfBirth: z.date({ required_error: "Date of birth is required." }),
+  })
+  .refine(
+    (data) => {
+      // Ensure both suspensionStart and suspensionEnd are either filled or both null
+      if (
+        (data.suspensionStart && !data.suspensionEnd) ||
+        (!data.suspensionStart && data.suspensionEnd)
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message:
+        "Both suspension start and end dates must be filled or both left empty.",
+      path: ["suspensionEnd"], // Highlight the suspensionEnd field in case of error
+    }
+  );
 
 const EditEmployeeForm = () => {
   const [securityQuestions, setSecurityQuestions] = useState<
@@ -95,7 +114,8 @@ const EditEmployeeForm = () => {
       role: "",
       email: "",
       address: "",
-      suspendedUntil: null,
+      suspensionStart: null,
+      suspensionEnd: null,
       isActive: true,
       securityQuestions: [
         { questionId: "", answer: "" },
@@ -265,9 +285,9 @@ const EditEmployeeForm = () => {
                   <FormLabel>{`Security Question ${index + 1}`}</FormLabel>
                   <FormControl>
                     <Select
-                      key={field.value || `security-${index}`} // Force re-render
+                      key={field.value || `security-${index}`}
                       onValueChange={field.onChange}
-                      value={field.value} // Ensure it resets properly
+                      value={field.value}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select a security question" />
@@ -328,6 +348,58 @@ const EditEmployeeForm = () => {
                     ))}
                   </SelectContent>
                 </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="suspensionStart"
+          render={({ field }) => (
+            <FormItem className="grid gap-2">
+              <FormLabel className="-mb-2">Suspension Start</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <DatePicker
+                    wrapperClassName="w-full"
+                    selected={field.value ? new Date(field.value) : null}
+                    onChange={(date) => field.onChange(date)}
+                    dateFormat="yyyy-MM-dd"
+                    className="w-full px-3 py-1 text-base shadow-sm border-input border rounded-md bg-transparent"
+                    showYearDropdown
+                    yearDropdownItemNumber={100}
+                    scrollableYearDropdown
+                  />
+                  <Calendar className="absolute right-5 top-[7px]" size={20} />
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="suspensionEnd"
+          render={({ field }) => (
+            <FormItem className="grid gap-2">
+              <FormLabel className="-mb-2">Suspension End</FormLabel>
+              <FormControl>
+                <div className="relative">
+                  <DatePicker
+                    wrapperClassName="w-full"
+                    selected={field.value ? new Date(field.value) : null}
+                    onChange={(date) => field.onChange(date)}
+                    dateFormat="yyyy-MM-dd"
+                    className="w-full px-3 py-1 text-base shadow-sm border-input border rounded-md bg-transparent"
+                    showYearDropdown
+                    yearDropdownItemNumber={100}
+                    scrollableYearDropdown
+                  />
+                  <Calendar className="absolute right-5 top-[7px]" size={20} />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

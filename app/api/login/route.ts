@@ -7,9 +7,7 @@ import {
   suspendUser,
   unsuspendUser,
 } from "@/lib/db";
-import { NextRequest, NextResponse } from "next/server";
-import { SignJWT } from "jose";
-import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 import getSuspensionMessage from "@/lib/get-suspension-message";
 import generateToken from "@/lib/generate-token";
 
@@ -56,11 +54,11 @@ export async function POST(request: Request) {
       );
     }
 
-    if (user.isSuspended && user.suspendedUntil) {
+    if (user.isSuspended && user.suspensionEnd) {
       const now = new Date();
-      if (now < user.suspendedUntil) {
+      if (now < user.suspensionEnd) {
         return NextResponse.json(
-          { message: getSuspensionMessage(user.suspendedUntil) },
+          { message: getSuspensionMessage(user.suspensionEnd) },
           { status: 401 }
         );
       } else {
@@ -80,9 +78,6 @@ export async function POST(request: Request) {
       }
 
       const tokenResponse = await generateToken(user.id);
-      const token = await tokenResponse.json();
-
-      const redirectionPath = getRedirectionPath(user.role);
 
       return NextResponse.json(
         { message: "Login successful", role: user.role },
@@ -112,7 +107,6 @@ export async function POST(request: Request) {
       );
     }
   } catch (error) {
-    console.error(error);
     return NextResponse.json(
       { message: "An unexpected error occurred, please try again later" },
       { status: 500 }

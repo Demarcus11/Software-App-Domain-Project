@@ -31,10 +31,12 @@ export const EmployeesTable = () => {
   }, []);
 
   return (
-    <DataTable
-      columns={employeeColumns(fetchEmployees, windowSize)}
-      data={employees}
-      filterBy="firstName"
-    />
+    <>
+      <DataTable
+        columns={employeeColumns(fetchEmployees, windowSize)}
+        data={employees}
+        filterBy="firstName"
+      />
+    </>
   );
 };

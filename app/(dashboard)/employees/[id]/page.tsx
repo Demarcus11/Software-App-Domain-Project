@@ -98,9 +98,15 @@ const ViewEmployeePage = () => {
           { label: "Email", value: employee?.email },
           { label: "Address", value: employee?.address },
           {
-            label: "Suspended until",
-            value: employee?.suspendedUntil
-              ? formatDate(new Date(employee.suspendedUntil))
+            label: "Suspension Start",
+            value: employee?.suspensionStart
+              ? formatDate(new Date(employee.suspensionStart))
+              : "N/A",
+          },
+          {
+            label: "Suspension End",
+            value: employee?.suspensionEnd
+              ? formatDate(new Date(employee.suspensionEnd))
               : "N/A",
           },
           { label: "Is Active?", value: employee?.isActive ? "Yes" : "No" },
