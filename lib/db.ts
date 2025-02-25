@@ -35,7 +35,7 @@ export const unsuspendUser = async (userId: number) => {
     },
     data: {
       isSuspended: false,
-      suspensionEnds: null,
+      suspensionEnd: null,
       suspensionStart: null,
     },
   });
