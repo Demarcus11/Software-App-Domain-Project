@@ -54,7 +54,7 @@ export async function POST(request: Request) {
       .toString()
       .padStart(2, "0")}${new Date().getFullYear().toString().slice(-2)}`;
 
-    const hiredByEmail = "ksuappdomain@yandex.com";
+    const hiredByEmail = "ksuappdomainmanager@gmail.com";
     const hiredByUser = await prisma.user.findUnique({
       where: { email: hiredByEmail },
     });
