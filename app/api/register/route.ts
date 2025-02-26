@@ -60,6 +60,7 @@ export async function POST(request: Request) {
     });
 
     if (!hiredByUser) {
+      console.log(hiredByUser);
       return NextResponse.json(
         { message: "HiredBy user not found" },
         { status: 400 }
@@ -135,7 +136,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         message:
-          "Access request sent to admin at: ksuappdomain@yandex.com, check your email for updates",
+          "Access request sent to admin at: ksuappdomainmanager@gmail.com, check your email for updates",
       },
       { status: 201 }
     );
