@@ -46,7 +46,7 @@ export async function GET(
     });
 
     return NextResponse.json({
-      message: `User rejected, email sent to ${user.email} with their username and password`,
+      message: `User rejected, rejection email sent to ${user.email}`,
     });
   } catch (error) {
     return NextResponse.json(

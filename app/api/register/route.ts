@@ -60,7 +60,6 @@ export async function POST(request: Request) {
     });
 
     if (!hiredByUser) {
-      console.log(hiredByUser);
       return NextResponse.json(
         { message: "HiredBy user not found" },
         { status: 400 }

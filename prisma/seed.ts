@@ -213,7 +213,7 @@ async function main() {
       dateOfBirth: new Date("1985-01-01"),
       isActive: true,
       password: bcrypt.hashSync("demoPassword123!", 10),
-      passwordExpiresAt: new Date(),
+      passwordExpiresAt: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
       securityQuestions: {
         create: [
           {
@@ -241,6 +241,48 @@ async function main() {
   });
 
   console.log("Demo manager seeded successfully");
+
+  const expiredUser = await prisma.user.create({
+    data: {
+      firstName: "Expired",
+      lastName: "User",
+      username: "expiredUser",
+      email: "expired@example.com",
+      dateOfHire: new Date(),
+      hiredById: admin.id,
+      role: "USER",
+      address: "789 Manager St",
+      dateOfBirth: new Date("1985-01-01"),
+      isActive: false,
+      password: bcrypt.hashSync("demoPassword123!", 10),
+      passwordExpiresAt: new Date(),
+      securityQuestions: {
+        create: [
+          {
+            questionId: 1,
+            answerHash: bcrypt.hashSync("blue", 10),
+          },
+          {
+            questionId: 2,
+            answerHash: bcrypt.hashSync("pizza", 10),
+          },
+          {
+            questionId: 3,
+            answerHash: bcrypt.hashSync("dog", 10),
+          },
+        ],
+      },
+    },
+  });
+
+  await prisma.passwordHistory.create({
+    data: {
+      userId: demoManager.id,
+      oldPassword: demoManager.password,
+    },
+  });
+
+  console.log("Expired user seeded successfully");
 }
 
 main()
