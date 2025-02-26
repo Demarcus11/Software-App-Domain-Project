@@ -26,9 +26,7 @@ export async function POST(
     const data = await req.json();
     const validatedData = editEmployeeSchema.parse(data);
 
-    if (!validatedData.suspensionStart && !validatedData.suspensionEnd) {
-      validatedData.suspensionStart = null;
-      validatedData.suspensionEnd = null;
+    if (validatedData.suspensionStart && validatedData.suspensionEnd) {
       validatedData.isActive = true;
     }
 
