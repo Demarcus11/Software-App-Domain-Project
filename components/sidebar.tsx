@@ -11,7 +11,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { User, Users, Home, KeyRound } from "lucide-react";
+import {
+  User,
+  Users,
+  Home,
+  KeyRound,
+  NotebookTabsIcon,
+  NotebookPenIcon,
+} from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import logo from "@/public/logo.png";
@@ -86,6 +93,18 @@ const AppSidebar = () => {
           icon: KeyRound,
           label: "Expired passwords",
           href: "/employees/expired-passwords",
+          visible: ["ADMIN"],
+        },
+        {
+          icon: NotebookTabsIcon,
+          label: "Chart of accounts",
+          href: "/chart-of-accounts",
+          visible: ["ADMIN"],
+        },
+        {
+          icon: NotebookPenIcon,
+          label: "Create account",
+          href: "/chart-of-accounts/new",
           visible: ["ADMIN"],
         },
       ],

@@ -8,6 +8,10 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator erd {
+  provider = "prisma-erd-generator"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -29,6 +33,31 @@ enum EmailStatus {
   SENT
   FAILED
   PENDING
+}
+
+enum AccountCategory {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+
+enum AccountSubcategory {
+  CURRENT_ASSETS
+  FIXED_ASSETS
+  CURRENT_LIABILITIES
+  LONG_TERM_LIABILITIES
+  RETAINED_EARNINGS
+  OPERATING_REVENUE
+  OPERATING_EXPENSE
+}
+
+enum StatementType {
+  IS // Income Statement
+  BS // Balance Sheet
+  RE // Retained Earnings Statement
 }
 
 model User {
@@ -58,10 +87,56 @@ model User {
   securityQuestions         UserSecurityQuestion[]
   passwordHistory           PasswordHistory[]
   accessRequests            AccessRequest[]
+  accounts                  Account[] // Relationship to accounts created by the user
+  eventLogs                 EventLog[] // Relationship to event logs created by the user
+
   user User[] @relation("HiredByUser")
 
   @@map("users")
 }
+
+model Account {
+  id                Int             @id @default(autoincrement())
+  accountName       String          @unique
+  accountNumber     String          @unique // Account number must be unique and numeric
+  accountDescription String
+  normalSide        String          // Debit or Credit
+  category          AccountCategory
+  subcategory       AccountSubcategory
+  initialBalance    Float           @default(0.00) // Monetary value with 2 decimal places
+  debit             Float           @default(0.00)
+  credit            Float           @default(0.00)
+  balance           Float           @default(0.00)
+  createdAt         DateTime        @default(now())
+  userId            Int             // User who created the account
+  order             Int             // Order of the account (e.g., 01 for cash)
+  statement         StatementType   // IS, BS, or RE
+  comment           String?
+  isActive          Boolean         @default(true) // Accounts can be deactivated
+
+  // Relationships
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventLogs         EventLog[]      // Logs for changes to this account
+
+  @@map("accounts")
+}
+
+model EventLog {
+  id                Int             @id @default(autoincrement())
+  eventType         String          // Added, Modified, Deactivated
+  beforeImage       Json?           // Snapshot of the account before changes
+  afterImage        Json?           // Snapshot of the account after changes
+  userId            Int             // User who made the change
+  accountId         Int?            // Account being modified (if applicable)
+  createdAt         DateTime        @default(now())
+
+  // Relationships
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account           Account?        @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("event_logs")
+}
+
 
 model PasswordHistory {
   id           Int   @id @default(autoincrement())

@@ -1,6 +1,6 @@
 "use client";
 import * as z from "zod";
-import { useForm } from "react-hook-form";
+import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
@@ -22,6 +22,8 @@ import { useState, useEffect } from "react";
 
 import { SecurityQuestion } from "@/types";
 
+import { Prisma } from "@prisma/client";
+
 import PasswordInput from "@/components/password-input";
 
 import Link from "next/link";
@@ -33,7 +35,9 @@ import { Calendar } from "lucide-react";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -41,6 +45,19 @@ import {
 import { toast } from "sonner";
 
 import { Roles } from "@/types/index";
+
+interface SecurityQuestionsSectionProps {
+  form: UseFormReturn<z.infer<typeof formSchema>>;
+  securityQuestions: SecurityQuestion[];
+  index: number;
+}
+
+interface RoleSelectProps {
+  field: {
+    value: string;
+    onChange: (value: string) => void;
+  };
+}
 
 const formSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
@@ -165,6 +182,75 @@ const RegisterForm = () => {
     }
   };
 
+  const SecurityQuestionSection = ({
+    form,
+    securityQuestions,
+    index,
+  }: SecurityQuestionsSectionProps) => {
+    return (
+      <>
+        <FormField
+          control={form.control}
+          name={`securityQuestions.${index}.questionId`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{`Security Question ${index + 1}`}</FormLabel>
+              <FormControl>
+                <Select
+                  key={field.value || `security-${index + 1}`}
+                  onValueChange={field.onChange}
+                  value={field.value}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a security question" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {securityQuestions.map((question) => (
+                      <SelectItem key={question.id} value={String(question.id)}>
+                        {question.question}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name={`securityQuestions.${index}.answer`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{`Answer for security question ${
+                index + 1
+              }`}</FormLabel>
+              <FormControl>
+                <PasswordInput {...field} />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+      </>
+    );
+  };
+
+  const RoleSelect = ({ field }: RoleSelectProps) => {
+    return (
+      <Select onValueChange={field.onChange} defaultValue={field.value}>
+        <SelectTrigger>
+          <SelectValue placeholder="Role" />
+        </SelectTrigger>
+        <SelectContent>
+          {roles.map((role) => (
+            <SelectItem key={role.id} value={role.role}>
+              {role.role}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  };
+
   return (
     <>
       <Card>
@@ -273,56 +359,12 @@ const RegisterForm = () => {
                 />
 
                 {[0, 1, 2].map((index) => (
-                  <div key={index}>
-                    <FormField
-                      control={form.control}
-                      name={`securityQuestions.${index}.questionId`}
-                      render={({ field }) => (
-                        <FormItem className="grid gap-2">
-                          <FormLabel>
-                            {`Security Question ${index + 1}`}
-                          </FormLabel>
-                          <FormControl>
-                            <Select
-                              key={field.value || `security-${index}`} // Force re-render
-                              onValueChange={field.onChange}
-                              value={field.value} // Ensure it resets properly
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select a security question" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {securityQuestions.map((question) => (
-                                  <SelectItem
-                                    key={question.id}
-                                    value={String(question.id)}
-                                  >
-                                    {question.question}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name={`securityQuestions.${index}.answer`}
-                      render={({ field }) => (
-                        <FormItem className="grid gap-2">
-                          <FormLabel className="mt-4">
-                            {`Answer for Question ${index + 1}`}
-                          </FormLabel>
-                          <FormControl>
-                            <PasswordInput {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <SecurityQuestionSection
+                    key={index}
+                    form={form}
+                    securityQuestions={securityQuestions}
+                    index={index}
+                  />
                 ))}
 
                 <FormField
@@ -332,21 +374,7 @@ const RegisterForm = () => {
                     <FormItem className="grid gap-2">
                       <FormLabel>Select an account type</FormLabel>
                       <FormControl>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Role" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {roles.map((role) => (
-                              <SelectItem key={role.id} value={role.role}>
-                                {role.role}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <RoleSelect field={field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
