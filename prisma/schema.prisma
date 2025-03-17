@@ -4,6 +4,8 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
+// npx prisma generate after updating schema, npx prisma migrate dev --name init to regenerate db
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -89,6 +91,7 @@ model User {
   accessRequests            AccessRequest[]
   accounts                  Account[] // Relationship to accounts created by the user
   eventLogs                 EventLog[] // Relationship to event logs created by the user
+  Transaction               Transaction[]
 
   user User[] @relation("HiredByUser")
 
@@ -97,46 +100,132 @@ model User {
 
 model Account {
   id                Int             @id @default(autoincrement())
-  accountName       String          @unique
-  accountNumber     String          @unique // Account number must be unique and numeric
-  accountDescription String
-  normalSide        String          // Debit or Credit
-  category          AccountCategory
-  subcategory       AccountSubcategory
-  initialBalance    Float           @default(0.00) // Monetary value with 2 decimal places
-  debit             Float           @default(0.00)
-  credit            Float           @default(0.00)
-  balance           Float           @default(0.00)
+  name              String          @unique
+  number            String          @unique
+  description       String
+  initialBalance    Float           @default(0.00)
   createdAt         DateTime        @default(now())
-  userId            Int             // User who created the account
-  order             Int             // Order of the account (e.g., 01 for cash)
-  statement         StatementType   // IS, BS, or RE
   comment           String?
-  isActive          Boolean         @default(true) // Accounts can be deactivated
+  isActive          Boolean         @default(true)
+  normalSide        String          
+  totalDebits       Float           @default(0.00)
+  totalCredits      Float           @default(0.00)
+  balance           Float           @default(0.00)
+
+
+
+  // Foreign Keys
+  categoryId        Int
+  subcategoryId     Int
+  statementId       Int
+  userId            Int
+  orderId           Int          // Order of the account (e.g., "01" for cash)
 
   // Relationships
   user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  eventLogs         EventLog[]      // Logs for changes to this account
+  category          Category        @relation(fields: [categoryId], references: [id])
+  subcategory       Subcategory     @relation(fields: [subcategoryId], references: [id])
+  statement         Statement       @relation(fields: [statementId], references: [id])
+  order             Order           @relation(fields: [orderId], references: [id])  
+  transactions      Transaction[]   // Single-entry transactions
 
   @@map("accounts")
 }
 
-model EventLog {
+/*
+
+Account Types:
+
+These are the high-level categories in the Chart of Accounts (COA), such as:
+Assets (e.g., Cash, Accounts Receivable)
+Liabilities (e.g., Accounts Payable, Loans Payable)
+Equity (e.g., Owner’s Equity, Retained Earnings)
+Revenue (e.g., Sales Revenue, Service Revenue)
+Expenses (e.g., Rent Expense, Utilities Expense)
+
+Specific Accounts:
+
+These are the individual accounts within each account type, such as:
+Cash (Asset)
+Accounts Receivable (Asset)
+Accounts Payable (Liability)
+Loans Payable (Liability)
+Owner’s Equity (Equity)
+Retained Earnings (Equity)
+
+order Field:
+
+This field is used to organize accounts in a specific sequence.
+
+It can be account type-specific (e.g., all assets start with "1000") or 
+account-specific (e.g., Cash is "01", Accounts Receivable is "02").
+
+Sales Revenue (Revenue)
+  */
+model Order {
   id                Int             @id @default(autoincrement())
-  eventType         String          // Added, Modified, Deactivated
-  beforeImage       Json?           // Snapshot of the account before changes
-  afterImage        Json?           // Snapshot of the account after changes
-  userId            Int             // User who made the change
-  accountId         Int?            // Account being modified (if applicable)
-  createdAt         DateTime        @default(now())
+  name              String          @unique
+  accounts          Account[]
+
+  @@map("orders")
+}
+
+model Category {
+  id                Int             @id @default(autoincrement())
+  name              String          @unique
+  accounts          Account[]
+
+  @@map("categories")
+}
+
+model Subcategory {
+  id                Int             @id @default(autoincrement())
+  name              String          @unique
+  categoryId        Int
+  accounts          Account[]
+
+  @@map("subcategories")
+}
+
+model Statement {
+  id                Int             @id @default(autoincrement())
+  name              String          @unique
+  accounts          Account[]
+
+  @@map("statements")
+}
+
+model Transaction {
+  id              Int       @id @default(autoincrement())
+  date            DateTime  @default(now())
+  description     String
+  amount          Float     @default(0.00) // Positive value representing the transaction amount
+  accountId       Int       // Links to the account
+  userId          Int       // User who created the transaction
+  balance         Float     @default(0.00) // Balance after the transaction
 
   // Relationships
-  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  account           Account?        @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  account         Account   @relation(fields: [accountId], references: [id])
+  user            User      @relation(fields: [userId], references: [id])
+
+  @@map("transactions")
+}
+
+model EventLog {
+  id          Int      @id @default(autoincrement())
+  eventType   String   // "CREATE", "UPDATE", or "DEACTIVATE"
+  tableName   String   // Name of the table being modified (e.g., "Account")
+  recordId    Int      // ID of the record being modified
+  beforeState Json?    // JSON representation of the record before the change
+  afterState  Json?    // JSON representation of the record after the change
+  userId      Int      // ID of the user who made the change
+  createdAt   DateTime @default(now())
+
+  // Relationships
+  user        User     @relation(fields: [userId], references: [id])
 
   @@map("event_logs")
 }
-
 
 model PasswordHistory {
   id           Int   @id @default(autoincrement())

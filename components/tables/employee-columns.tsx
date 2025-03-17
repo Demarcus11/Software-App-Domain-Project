@@ -139,6 +139,10 @@ export const employeeColumns = (
       enableHiding: false,
     },
     {
+      accessorKey: "id",
+      header: "User Id",
+    },
+    {
       accessorKey: "username",
       header: "Username",
     },

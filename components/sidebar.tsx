@@ -18,6 +18,7 @@ import {
   KeyRound,
   NotebookTabsIcon,
   NotebookPenIcon,
+  Logs,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -99,13 +100,19 @@ const AppSidebar = () => {
           icon: NotebookTabsIcon,
           label: "Chart of accounts",
           href: "/chart-of-accounts",
-          visible: ["ADMIN"],
+          visible: ["ADMIN", "USER", "MANAGER"], // Fixed: Use an array of strings
         },
         {
           icon: NotebookPenIcon,
           label: "Create account",
           href: "/chart-of-accounts/new",
           visible: ["ADMIN"],
+        },
+        {
+          icon: Logs,
+          label: "Event Logs",
+          href: "/events",
+          visible: ["ADMIN", "USER", "MANAGER"],
         },
       ],
     },

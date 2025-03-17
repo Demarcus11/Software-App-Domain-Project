@@ -26,29 +26,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { Category, Subcategory, Statement, Order } from "@prisma/client";
 
 const formSchema = z.object({
-  accountName: z.string().min(1, "Account name is required"),
-  accountDescription: z.string().optional(),
-  normalSide: z.enum(["Debit", "Credit"]),
-  category: z.enum(["ASSET", "LIABILITY", "EQUITY", "REVENUE", "EXPENSE"]),
-  subcategory: z.enum([
-    "CURRENT_ASSETS",
-    "FIXED_ASSETS",
-    "CURRENT_LIABILITIES",
-    "LONG_TERM_LIABILITIES",
-    "RETAINED_EARNINGS",
-    "OPERATING_REVENUE",
-    "OPERATING_EXPENSE",
-  ]),
+  name: z.string().min(1, "Account name is required"),
+  description: z.string().min(1, "Description is required"),
+  normalSide: z.enum(["Debit", "Credit"], {
+    required_error: "Normal side is required",
+  }),
   initialBalance: z
     .number()
     .min(0, "Initial balance must be a positive number"),
-  debit: z.number().min(0, "Debit must be a positive number"),
-  credit: z.number().min(0, "Credit must be a positive number"),
-  order: z.number().min(1, "Order must be a positive number"),
-  statement: z.enum(["IS", "BS", "RE"]),
+  orderId: z.number().min(1, "Order is required"),
   comment: z.string().optional(),
+  categoryId: z.number().min(1, "Category is required"),
+  subcategoryId: z.number().min(1, "Subcategory is required"),
+  statementId: z.number().min(1, "Statement is required"),
 });
 
 interface UserId {
@@ -56,7 +49,11 @@ interface UserId {
 }
 
 const CreateAccountForm = () => {
-  const [userId, setUserId] = useState<UserId | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [statements, setStatements] = useState<Statement[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -71,8 +68,8 @@ const CreateAccountForm = () => {
           return;
         }
 
-        const userDetails = await response.json();
-        setUserId(userDetails.id);
+        const user = await response.json();
+        setUserId(user.id);
         setIsLoading(false);
       } catch (error) {
         console.error(error);
@@ -82,20 +79,77 @@ const CreateAccountForm = () => {
     fetchUserId();
   }, []);
 
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("/api/categories");
+        if (!response.ok) {
+          throw new Error("Failed to fetch categories");
+        }
+        const data = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const fetchSubcategories = async () => {
+      try {
+        const response = await fetch("/api/subcategories");
+        if (!response.ok) {
+          throw new Error("Failed to fetch subcategories");
+        }
+        const data = await response.json();
+        setSubcategories(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const fetchStatements = async () => {
+      try {
+        const response = await fetch("/api/statements");
+        if (!response.ok) {
+          throw new Error("Failed to fetch statements");
+        }
+        const data = await response.json();
+        setStatements(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch("/api/orders");
+        if (!response.ok) {
+          throw new Error("Failed to fetch orders");
+        }
+        const data = await response.json();
+        setOrders(data);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchCategories();
+    fetchSubcategories();
+    fetchStatements();
+    fetchOrders();
+  }, []);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      accountName: "",
-      accountDescription: "",
+      name: "",
+      description: "",
       normalSide: "Debit",
-      category: "ASSET",
-      subcategory: "CURRENT_ASSETS",
-      initialBalance: 0.0,
-      debit: 0.0,
-      credit: 0.0,
-      order: 1,
-      statement: "BS",
+      initialBalance: 0,
+      orderId: 0,
       comment: "",
+      categoryId: 0,
+      subcategoryId: 0,
+      statementId: 0,
     },
   });
 
@@ -107,57 +161,145 @@ const CreateAccountForm = () => {
       userId: userId,
     };
 
-    try {
-      const response = await fetch("/api/accounts/new", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedData),
-      });
+    const response = await fetch("/api/accounts/new", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedData),
+    });
 
-      if (!response.ok) {
-        const error = await response.json();
-        console.log(error);
-        form.setError("root", {
-          type: "server",
-          message: error.message,
-        });
-        setIsLoading(false);
-        return;
-      }
+    const result = await response.json();
 
-      const result = await response.json();
-      return result;
-    } catch (error) {
-      console.error(error);
+    if (!response.ok) {
       form.setError("root", {
         type: "server",
-        message: "An unexpected error occurred, please try again later",
+        message: result.message,
       });
       setIsLoading(false);
-    } finally {
-      setIsLoading(false);
+      throw new Error(result.message); // This will be caught by toast.promise
     }
-  };
 
-  const handleResetButtonClick = () => {
-    form.reset();
+    setIsLoading(false);
+    return result;
   };
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    try {
-      toast.promise(createAccount(data), {
-        loading: "Creating account...",
-        success: (responseData) => responseData?.message,
-        error: (err) => err.message,
-        duration: 10000,
-      });
-
-      form.reset();
-    } catch (error) {
-      console.error(error);
+    if (!userId) {
+      toast.error("User ID is not available. Please try again.");
+      return;
     }
+
+    try {
+      await createAccount(data);
+      toast.success("Account created");
+    } catch (error) {
+      // Error already handled in the promise chain, no need to do anything here
+    }
+  };
+
+  const CategoriesSelect = ({
+    value,
+    onChange,
+  }: {
+    value: number;
+    onChange: (value: number) => void;
+  }) => {
+    return (
+      <Select
+        value={String(value)}
+        onValueChange={(val) => onChange(Number(val))}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Select category" />
+        </SelectTrigger>
+        <SelectContent>
+          {categories.map((category) => (
+            <SelectItem key={category.id} value={String(category.id)}>
+              {category.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  };
+
+  const SubcategoriesSelect = ({
+    value,
+    onChange,
+  }: {
+    value: number;
+    onChange: (value: number) => void;
+  }) => {
+    return (
+      <Select
+        value={String(value)}
+        onValueChange={(val) => onChange(Number(val))}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Select subcategory" />
+        </SelectTrigger>
+        <SelectContent>
+          {subcategories.map((subcategory) => (
+            <SelectItem key={subcategory.id} value={String(subcategory.id)}>
+              {subcategory.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  };
+
+  const StatementsSelect = ({
+    value,
+    onChange,
+  }: {
+    value: number;
+    onChange: (value: number) => void;
+  }) => {
+    return (
+      <Select
+        value={String(value)}
+        onValueChange={(val) => onChange(Number(val))}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Select statement" />
+        </SelectTrigger>
+        <SelectContent>
+          {statements.map((statement) => (
+            <SelectItem key={statement.id} value={String(statement.id)}>
+              {statement.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
+  };
+
+  const OrdersSelect = ({
+    value,
+    onChange,
+  }: {
+    value: number;
+    onChange: (value: number) => void;
+  }) => {
+    return (
+      <Select
+        value={String(value)}
+        onValueChange={(val) => onChange(Number(val))}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Select order" />
+        </SelectTrigger>
+        <SelectContent>
+          {orders.map((order) => (
+            <SelectItem key={order.id} value={String(order.id)}>
+              {order.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    );
   };
 
   return (
@@ -165,7 +307,7 @@ const CreateAccountForm = () => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
-          name="accountName"
+          name="name"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Account Name</FormLabel>
@@ -179,7 +321,7 @@ const CreateAccountForm = () => {
 
         <FormField
           control={form.control}
-          name="accountDescription"
+          name="description"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Account Description</FormLabel>
@@ -201,6 +343,7 @@ const CreateAccountForm = () => {
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
+                  {...field}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select normal side" />
@@ -218,26 +361,12 @@ const CreateAccountForm = () => {
 
         <FormField
           control={form.control}
-          name="category"
+          name="categoryId"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Account Category</FormLabel>
               <FormControl>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ASSET">Asset</SelectItem>
-                    <SelectItem value="LIABILITY">Liability</SelectItem>
-                    <SelectItem value="EQUITY">Equity</SelectItem>
-                    <SelectItem value="REVENUE">Revenue</SelectItem>
-                    <SelectItem value="EXPENSE">Expense</SelectItem>
-                  </SelectContent>
-                </Select>
+                <CategoriesSelect {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -246,40 +375,12 @@ const CreateAccountForm = () => {
 
         <FormField
           control={form.control}
-          name="subcategory"
+          name="subcategoryId"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Account Subcategory</FormLabel>
               <FormControl>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select subcategory" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CURRENT_ASSETS">
-                      Current Assets
-                    </SelectItem>
-                    <SelectItem value="FIXED_ASSETS">Fixed Assets</SelectItem>
-                    <SelectItem value="CURRENT_LIABILITIES">
-                      Current Liabilities
-                    </SelectItem>
-                    <SelectItem value="LONG_TERM_LIABILITIES">
-                      Long-Term Liabilities
-                    </SelectItem>
-                    <SelectItem value="RETAINED_EARNINGS">
-                      Retained Earnings
-                    </SelectItem>
-                    <SelectItem value="OPERATING_REVENUE">
-                      Operating Revenue
-                    </SelectItem>
-                    <SelectItem value="OPERATING_EXPENSE">
-                      Operating Expense
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                <SubcategoriesSelect {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -309,20 +410,12 @@ const CreateAccountForm = () => {
 
         <FormField
           control={form.control}
-          name="debit"
+          name="statementId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Debit</FormLabel>
+              <FormLabel>Statement</FormLabel>
               <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Enter debit amount"
-                  {...field}
-                  value={field.value || ""}
-                  onChange={(e) => {
-                    field.onChange(e.target.valueAsNumber);
-                  }}
-                />
+                <StatementsSelect {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -331,68 +424,12 @@ const CreateAccountForm = () => {
 
         <FormField
           control={form.control}
-          name="credit"
+          name="orderId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Credit</FormLabel>
+              <FormLabel>Account Order</FormLabel>
               <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Enter credit amount"
-                  {...field}
-                  value={field.value || ""}
-                  onChange={(e) => {
-                    field.onChange(e.target.valueAsNumber);
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="order"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Order</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Enter order"
-                  {...field}
-                  value={field.value || ""}
-                  onChange={(e) => {
-                    field.onChange(e.target.valueAsNumber);
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="statement"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Statement Type</FormLabel>
-              <FormControl>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select statement type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="IS">Income Statement</SelectItem>
-                    <SelectItem value="BS">Balance Sheet</SelectItem>
-                    <SelectItem value="RE">Retained Earnings</SelectItem>
-                  </SelectContent>
-                </Select>
+                <OrdersSelect {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
