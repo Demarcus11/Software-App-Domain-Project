@@ -33,40 +33,81 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useSearchParams } from "next/navigation";
-import { Transaction } from "@/types/transaction";
+import { Account, Transaction } from "@prisma/client";
+import { useParams } from "next/navigation";
 
 const formSchema = z.object({
   description: z.string().min(1, "Description is required"),
-  debit: z.string().min(0, "Debit must be a positive number"),
-  credit: z.string().min(0, "Credit must be a positive number"),
-  date: z.date({ required_error: "Date of birth is required." }),
-  accountId: z.string().min(1, "Account is required"),
-  userId: z.string().min(1, "UserId is required"),
+  amount: z.coerce.number().min(1, "Amount is required"),
 });
 
 const CreateTransactionForm = () => {
-  const params = useSearchParams();
-  const id = params.get("id");
-
+  const params = useParams();
+  const { id } = params;
+  const [userId, setUserId] = useState<number | null>(null);
+  const [account, setAccount] = useState<Account | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       description: "",
-      debit: "",
-      credit: "",
-      date: new Date(),
-      accountId: id || undefined,
-      userId: "",
+      amount: 0,
     },
   });
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const response = await fetch("/api/user", {
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          console.log(error.message);
+          console.error("Failed to fetch user details");
+          return;
+        }
+
+        const user = await response.json();
+        setUserId(user.id);
+        setIsLoading(false);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchUserId();
+  }, []);
+
+  useEffect(() => {
+    const fetchAccount = async () => {
+      try {
+        const response = await fetch(`/api/accounts/${id}`, {
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          console.error("Failed to fetch account details");
+          return;
+        }
+
+        const account = await response.json();
+        setAccount(account);
+        setIsLoading(false);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchAccount();
+  }, []);
 
   const createTransaction = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`/api/transaction/${id}`, {
+      const response = await fetch(`/api/transactions/new`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -99,8 +140,15 @@ const CreateTransactionForm = () => {
   };
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    const formattedData = {
+      ...data,
+      userId,
+      date: new Date(),
+      accountId: String(id),
+    };
+
     try {
-      toast.promise(createTransaction(data), {
+      toast.promise(createTransaction(formattedData), {
         loading: "Creating transaction...",
         success: (responseData) => responseData?.message,
         error: (err) => err.message,
@@ -141,52 +189,12 @@ const CreateTransactionForm = () => {
 
         <FormField
           control={form.control}
-          name="debit"
+          name="amount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Debit</FormLabel>
+              <FormLabel>Amount</FormLabel>
               <FormControl>
-                <Input placeholder="" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="credit"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Credit</FormLabel>
-              <FormControl>
-                <Input placeholder="" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="date"
-          render={({ field }) => (
-            <FormItem className="grid gap-2">
-              <FormLabel className="-mb-2">Date</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <DatePicker
-                    wrapperClassName="w-full"
-                    selected={field.value ? new Date(field.value) : null}
-                    onChange={(date) => field.onChange(date)}
-                    dateFormat="yyyy-MM-dd"
-                    className="w-full px-3 py-1 text-base shadow-sm border-input border rounded-md bg-transparent"
-                    showYearDropdown
-                    yearDropdownItemNumber={100}
-                    scrollableYearDropdown
-                  />
-                  <Calendar className="absolute right-5 top-[7px]" size={20} />
-                </div>
+                <Input type="number" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -199,7 +207,7 @@ const CreateTransactionForm = () => {
           </div>
         )}
 
-        <Button type="submit">Create Employee</Button>
+        <Button type="submit">Create Transaction</Button>
       </form>
     </Form>
   );

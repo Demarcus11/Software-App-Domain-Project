@@ -19,6 +19,7 @@ import {
   NotebookTabsIcon,
   NotebookPenIcon,
   Logs,
+  NotebookText,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -112,6 +113,12 @@ const AppSidebar = () => {
           icon: Logs,
           label: "Event Logs",
           href: "/events",
+          visible: ["ADMIN", "USER", "MANAGER"],
+        },
+        {
+          icon: NotebookText,
+          label: "Journal",
+          href: "/journal",
           visible: ["ADMIN", "USER", "MANAGER"],
         },
       ],

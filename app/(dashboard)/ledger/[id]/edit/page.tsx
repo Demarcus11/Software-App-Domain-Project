@@ -17,7 +17,7 @@ const EditLedgerPage = () => {
   return (
     <div className="grid gap-4">
       <BackButton link={`/ledger/${id}`} text="Back to ledger" />
-      <h1 className="text-xl font-medium">Edit Transaction: {id}</h1>
+      <h1 className="text-xl font-medium">Edit Transaction Id: {id}</h1>
 
       <EditTransactionForm />
     </div>

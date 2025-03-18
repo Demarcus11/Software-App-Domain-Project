@@ -37,7 +37,7 @@ export type AccountCategory =
   | "Liability"
   | "Equity"
   | "Revenue"
-  | "Expense";
+  | "Expenses";
 
 export const generateAccountNumber = async (category: AccountCategory) => {
   const prefixes = {
@@ -45,7 +45,7 @@ export const generateAccountNumber = async (category: AccountCategory) => {
     Liability: "200",
     Equity: "300",
     Revenue: "400",
-    Expense: "500",
+    Expenses: "500",
   };
 
   const prefix = prefixes[category];
@@ -66,8 +66,6 @@ export const generateAccountNumber = async (category: AccountCategory) => {
   // Parse the last account number as an integer and increment
   const lastNumberValue = parseInt(lastAccountNumber.number);
   const nextNumberValue = lastNumberValue + 1;
-
-  console.log("Generated new account number:", nextNumberValue);
 
   return nextNumberValue.toString();
 };
@@ -115,10 +113,14 @@ export async function POST(request: Request) {
       );
     }
 
+    console.log(category.name);
+
     // Generate the account number
     const accountNumber = await generateAccountNumber(
       category.name as AccountCategory
     );
+
+    console.log(accountNumber);
 
     // Create the new account with the initial balance
     const newAccount = await prisma.account.create({
@@ -135,8 +137,12 @@ export async function POST(request: Request) {
         statementId,
         comment,
         userId,
+        totalDebits: normalSide === "Debit" ? initialBalance : 0,
+        totalCredits: normalSide === "Credit" ? initialBalance : 0,
       },
     });
+
+    console.log(newAccount);
 
     await prisma.eventLog.create({
       data: {

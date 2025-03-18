@@ -107,7 +107,7 @@ const LedgerPage = () => {
     <div className="grid gap-4">
       <BackButton link="/chart-of-accounts" text="Back to chart of accounts" />
 
-      <h1 className="text-2xl font-medium">Ledger for account number: {id}</h1>
+      <h1 className="text-2xl font-medium">Ledger for account id: {id}</h1>
       <LedgerDataTable columns={columns} data={transactions} />
     </div>
   );
