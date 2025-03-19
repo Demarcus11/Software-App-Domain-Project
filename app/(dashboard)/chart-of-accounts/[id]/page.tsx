@@ -13,6 +13,7 @@ import {
   Statement,
   Transaction,
   Order,
+  User,
 } from "@prisma/client";
 import { useParams } from "next/navigation";
 import { format } from "date-fns";
@@ -21,20 +22,42 @@ interface ViewAccountPageProps {
   params: Promise<{ id: string }>;
 }
 
+interface UserDetails {
+  role: string;
+}
+
 const ViewAccountPage = ({ params }: ViewAccountPageProps) => {
   const [account, setAccount] = useState<Account | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
   const [subcategory, setSubcategory] = useState<Subcategory | null>(null);
   const [statement, setStatement] = useState<Statement | null>(null);
-  const [order, setOrder] = useState<Order | null>(null); // Replace 'any' with the actual type of order
-  const [balance, setBalance] = useState<number>(0);
-  const [totalDebits, setTotalDebits] = useState<number>(0);
-  const [totalCredits, setTotalCredits] = useState<number>(0);
+  const [order, setOrder] = useState<Order | null>(null);
+  const [user, setUser] = useState<UserDetails | null>(null);
 
   //  Replace 'any' with the actual type of transactions
 
   const [isLoading, setIsLoading] = useState(true);
   const { id } = useParams();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await fetch("/api/user", {
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          console.error("Failed to fetch user details");
+          return;
+        }
+
+        const userDetails = await response.json();
+        setUser({
+          role: userDetails.role,
+        });
+      } catch (error) {}
+    };
+  }, []);
 
   useEffect(() => {
     const fetchAccount = async () => {
@@ -196,13 +219,15 @@ const ViewAccountPage = ({ params }: ViewAccountPageProps) => {
         {isLoading ? (
           <Skeleton className="h-10 w-20 ml-auto mb-4 rounded" />
         ) : (
-          <Link
-            href={`/chart-of-accounts/${id}/edit`}
-            className="bg-primary text-primary-foreground text-sm px-4 py-2 flex items-center gap-2 rounded ml-auto mb-4"
-          >
-            <SquarePen size={15} />
-            Edit
-          </Link>
+          user?.role === "ADMIN" && (
+            <Link
+              href={`/chart-of-accounts/${id}/edit`}
+              className="bg-primary text-primary-foreground text-sm px-4 py-2 flex items-center gap-2 rounded ml-auto mb-4"
+            >
+              <SquarePen size={15} />
+              Edit
+            </Link>
+          )
         )}
       </div>
 

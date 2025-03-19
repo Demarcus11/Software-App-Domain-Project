@@ -31,37 +31,6 @@ enum RequestStatus {
   REJECTED
 }
 
-enum EmailStatus {
-  SENT
-  FAILED
-  PENDING
-}
-
-enum AccountCategory {
-  ASSET
-  LIABILITY
-  EQUITY
-  REVENUE
-  EXPENSE
-}
-
-
-enum AccountSubcategory {
-  CURRENT_ASSETS
-  FIXED_ASSETS
-  CURRENT_LIABILITIES
-  LONG_TERM_LIABILITIES
-  RETAINED_EARNINGS
-  OPERATING_REVENUE
-  OPERATING_EXPENSE
-}
-
-enum StatementType {
-  IS // Income Statement
-  BS // Balance Sheet
-  RE // Retained Earnings Statement
-}
-
 model User {
   id                        Int       @id @default(autoincrement())
   username                  String    @unique
@@ -84,6 +53,7 @@ model User {
   suspensionEnd             DateTime?
   lastPasswordChangeAt      DateTime   @default(now())
   passwordExpiresAt         DateTime
+  profilePictureUrl         String?  
 
   // Relationships
   securityQuestions         UserSecurityQuestion[]
@@ -96,6 +66,7 @@ model User {
   user User[] @relation("HiredByUser")
 
   @@map("users")
+  Notification Notification[]
 }
 
 model Account {
@@ -269,6 +240,18 @@ model UserSecurityQuestion {
 
   @@id([userId, questionId])
   @@map("user_security_questions")
+}
+
+model Notification {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  message     String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
 }
 
 model ErrorMessage {

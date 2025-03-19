@@ -1,8 +1,9 @@
 "use client";
-import * as z from "zod";
+
+import { useEffect, useState } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
+import { z } from "zod";
 import {
   Form,
   FormControl,
@@ -11,27 +12,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
 import { Input } from "@/components/ui/input";
-
 import { Button } from "@/components/ui/button";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-import { useState, useEffect } from "react";
-
-import { SecurityQuestion } from "@/types";
-
-import { Prisma } from "@prisma/client";
-
 import PasswordInput from "@/components/password-input";
-
 import Link from "next/link";
-
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar } from "lucide-react";
-
 import {
   Select,
   SelectContent,
@@ -41,10 +29,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import { toast } from "sonner";
-
 import { Roles } from "@/types/index";
+import { SecurityQuestion } from "@/types";
 
 interface SecurityQuestionsSectionProps {
   form: UseFormReturn<z.infer<typeof formSchema>>;
@@ -75,6 +62,7 @@ const formSchema = z.object({
     })
   ),
   dateOfBirth: z.date({ required_error: "Date of birth is required." }),
+  profilePicture: z.instanceof(File),
 });
 
 const RegisterForm = () => {
@@ -123,10 +111,13 @@ const RegisterForm = () => {
         { questionId: "", answer: "" },
       ],
       dateOfBirth: undefined,
+      profilePicture: undefined,
     },
   });
 
-  const registerAccount = async (data: z.infer<typeof formSchema>) => {
+  const registerAccount = async (
+    data: z.infer<typeof formSchema> & { profilePictureUrl: string }
+  ) => {
     setIsLoading(true);
 
     try {
@@ -140,6 +131,7 @@ const RegisterForm = () => {
 
       if (!response.ok) {
         const error = await response.json();
+        console.log(error);
         form.setError("email", {
           type: "server",
           message: error.message,
@@ -169,7 +161,36 @@ const RegisterForm = () => {
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
-      toast.promise(registerAccount(data), {
+      // Upload the profile picture to Cloudinary
+      const formData = new FormData();
+      formData.append("file", data.profilePicture);
+      formData.append("upload_preset", "next_cloudinary_app");
+
+      const cloudinaryResponse = await fetch(
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!cloudinaryResponse.ok) {
+        const error = await cloudinaryResponse.json();
+        console.error("Cloudinary Error:", error);
+        throw new Error("Failed to upload profile picture");
+      }
+
+      const cloudinaryData = await cloudinaryResponse.json();
+      const profilePictureUrl = cloudinaryData.secure_url;
+
+      // Add the profile picture URL to the form data
+      const updatedData = {
+        ...data,
+        profilePictureUrl,
+      };
+
+      // Send the updated data to your backend
+      toast.promise(registerAccount(updatedData), {
         loading: "Sending request to admin at ksuappdomainmanager@gmail.com...",
         success: (responseData) => responseData?.message,
         error: (err) => err.message,
@@ -179,6 +200,7 @@ const RegisterForm = () => {
       form.reset();
     } catch (error) {
       console.error(error);
+      toast.error("Failed to upload profile picture");
     }
   };
 
@@ -197,7 +219,7 @@ const RegisterForm = () => {
               <FormLabel>{`Security Question ${index + 1}`}</FormLabel>
               <FormControl>
                 <Select
-                  key={field.value || `security-${index + 1}`}
+                  key={`security-question-${index}`} // Stable key
                   onValueChange={field.onChange}
                   value={field.value}
                 >
@@ -360,7 +382,7 @@ const RegisterForm = () => {
 
                 {[0, 1, 2].map((index) => (
                   <SecurityQuestionSection
-                    key={index}
+                    key={`security-section-${index}`} // Stable key
                     form={form}
                     securityQuestions={securityQuestions}
                     index={index}
@@ -375,6 +397,29 @@ const RegisterForm = () => {
                       <FormLabel>Select an account type</FormLabel>
                       <FormControl>
                         <RoleSelect field={field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="profilePicture"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Profile Picture</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              field.onChange(file);
+                            }
+                          }}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

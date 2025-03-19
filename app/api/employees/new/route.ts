@@ -19,7 +19,6 @@ const registerSchema = z.object({
     })
   ),
 });
-
 export async function POST(request: Request) {
   try {
     let {
@@ -66,6 +65,7 @@ export async function POST(request: Request) {
       );
     }
 
+    // Create the user with the profilePictureUrl
     const user = await prisma.user.create({
       data: {
         firstName,

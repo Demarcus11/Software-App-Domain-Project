@@ -30,6 +30,7 @@ export async function POST(request: Request) {
       address,
       securityQuestions,
       dateOfBirth,
+      profilePictureUrl,
     } = await request.json();
 
     const existingUser = await prisma.user.findUnique({
@@ -78,6 +79,7 @@ export async function POST(request: Request) {
         password: defaultPassword,
         passwordExpiresAt: passwordExpirationDate,
         hiredById: hiredByUser.id,
+        profilePictureUrl,
       },
     });
 
@@ -139,10 +141,14 @@ export async function POST(request: Request) {
       },
       { status: 201 }
     );
-  } catch (error) {
-    return NextResponse.json(
-      { message: "An unexpected error occurred, please try again later" },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return NextResponse.json({ message: error.message }, { status: 500 });
+    } else {
+      return NextResponse.json(
+        { message: "An unexpected error occurred, please try again later" },
+        { status: 500 }
+      );
+    }
   }
 }

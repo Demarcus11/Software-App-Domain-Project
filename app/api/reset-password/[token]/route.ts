@@ -50,6 +50,7 @@ export async function POST(
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await prisma.$transaction(async (tx) => {
+      // Update user's password and related fields
       await tx.user.update({
         where: { id: user.id },
         data: {
@@ -62,10 +63,21 @@ export async function POST(
         },
       });
 
+      // Add the new password to the password history
       await tx.passwordHistory.create({
         data: {
           userId: user.id,
           oldPassword: hashedPassword,
+        },
+      });
+
+      // Clear the password expiration notification
+      await tx.notification.deleteMany({
+        where: {
+          userId: user.id,
+          message: {
+            contains: "Your password will expire in 3 days",
+          },
         },
       });
     });

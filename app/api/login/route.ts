@@ -6,6 +6,7 @@ import {
   resetFailedLoginAttempts,
   suspendUser,
   unsuspendUser,
+  createNotification,
 } from "@/lib/db";
 import { NextResponse } from "next/server";
 import getSuspensionMessage from "@/lib/get-suspension-message";
@@ -71,6 +72,22 @@ export async function POST(request: Request) {
 
     if (isPasswordValid) {
       await resetFailedLoginAttempts(user.id);
+
+      // Check if the password is about to expire (within 3 days)
+      const passwordExpiresAt = new Date(user.passwordExpiresAt);
+      const threeDaysFromNow = new Date();
+      threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+
+      if (
+        passwordExpiresAt <= threeDaysFromNow &&
+        passwordExpiresAt >= new Date()
+      ) {
+        // Create a notification for the user
+        await createNotification({
+          userId: user.id,
+          message: `Your password will expire in 3 days. Please reset your password.`,
+        });
+      }
 
       const jwt_secret = process.env.JWT_SECRET;
       if (!jwt_secret) {

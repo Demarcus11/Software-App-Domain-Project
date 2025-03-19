@@ -55,6 +55,7 @@ const formSchema = z
       })
     ),
     dateOfBirth: z.date({ required_error: "Date of birth is required." }),
+    profilePicture: z.string().optional().nullable(),
   })
   .refine(
     (data) => {
@@ -123,6 +124,7 @@ const EditEmployeeForm = () => {
         { questionId: "", answer: "" },
       ],
       dateOfBirth: undefined,
+      profilePicture: null,
     },
   });
 

@@ -77,3 +77,18 @@ export const suspendUser = async (userId: number, until: Date) => {
     },
   });
 };
+
+export async function createNotification({
+  userId,
+  message,
+}: {
+  userId: number;
+  message: string;
+}) {
+  return await prisma.notification.create({
+    data: {
+      userId,
+      message,
+    },
+  });
+}
