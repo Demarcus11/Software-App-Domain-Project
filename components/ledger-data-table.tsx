@@ -121,10 +121,12 @@ export function LedgerDataTable<TData, TValue>({
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      onClick={() => {
-                        router.push(
-                          `/ledger/${cell.row.original.accountNumber}`
-                        );
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        // router.push(
+                        //   `/ledger/${cell.row.original.accountNumber}`
+                        // );
                       }}
                     >
                       {flexRender(

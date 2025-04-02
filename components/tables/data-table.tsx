@@ -3,12 +3,6 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 import {
   ColumnDef,
@@ -52,18 +46,22 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "../ui/textarea";
 import EmailEmployeesForm from "../forms/email-employees";
+import { useRouter } from "next/navigation";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   filterBy: string;
+  type: string;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   filterBy,
+  type,
 }: DataTableProps<TData, TValue>) {
+  const router = useRouter();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -127,6 +125,7 @@ export function DataTable<TData, TValue>({
           }
           className="max-w-sm"
         />
+
         <div className="flex items-center gap-4 ml-auto">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogDescription className="sr-only"></DialogDescription>
@@ -146,41 +145,11 @@ export function DataTable<TData, TValue>({
             </DialogContent>
           </Dialog>
 
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="ml-auto">
-                      Columns
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {table
-                      .getAllColumns()
-                      .filter((column) => column.getCanHide())
-                      .map((column) => {
-                        return (
-                          <DropdownMenuCheckboxItem
-                            key={column.id}
-                            className="capitalize"
-                            checked={column.getIsVisible()}
-                            onCheckedChange={(value) =>
-                              column.toggleVisibility(!!value)
-                            }
-                          >
-                            {column.id}
-                          </DropdownMenuCheckboxItem>
-                        );
-                      })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TooltipTrigger>
-              <TooltipContent className="bg-neutral-800">
-                Filter columns
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {type === "employee" && (
+            <Button onClick={() => router.push("/employees/new")}>
+              New Employee
+            </Button>
+          )}
         </div>
       </div>
       <div className="rounded-md border">

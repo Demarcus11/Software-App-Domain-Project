@@ -9,13 +9,16 @@ import useWindowSize from "@/hooks/use-window-size";
 
 interface ExpiredPasswordsTableProps {
   data: ExpiredPasswords[];
+  type: string;
 }
 
-const ExpiredPasswordsTable = ({ data }: ExpiredPasswordsTableProps) => {
+const ExpiredPasswordsTable = ({ data, type }: ExpiredPasswordsTableProps) => {
   const windowSize = useWindowSize();
   const columns = ExpiredPasswordsColumns(windowSize);
 
-  return <DataTable columns={columns} data={data} filterBy="firstName" />;
+  return (
+    <DataTable columns={columns} data={data} filterBy="firstName" type={type} />
+  );
 };
 
 export default ExpiredPasswordsTable;

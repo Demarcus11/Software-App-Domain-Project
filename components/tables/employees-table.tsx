@@ -5,10 +5,12 @@ import { Employee } from "@/types";
 import { employeeColumns } from "./employee-columns";
 import { DataTable } from "@/components/tables/data-table";
 import useWindowSize from "@/hooks/use-window-size";
+import { Loader } from "lucide-react";
 
 export const EmployeesTable = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const windowSize = useWindowSize();
+  const [loading, setLoading] = useState(true);
 
   // Fetch employees data
   const fetchEmployees = async () => {
@@ -21,6 +23,7 @@ export const EmployeesTable = () => {
       }
       const data = await response.json();
       setEmployees(data);
+      setLoading(false);
     } catch (error) {
       console.error(error);
     }
@@ -30,12 +33,22 @@ export const EmployeesTable = () => {
     fetchEmployees();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen gap-2">
+        <Loader className="animate-spin" />
+        <span>Loading employees...</span>
+      </div>
+    );
+  }
+
   return (
     <>
       <DataTable
         columns={employeeColumns(fetchEmployees, windowSize)}
         data={employees}
         filterBy="firstName"
+        type="employee"
       />
     </>
   );

@@ -10,6 +10,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
 } from "@/components/ui/sidebar";
 import {
   User,
@@ -20,6 +21,7 @@ import {
   NotebookPenIcon,
   Logs,
   NotebookText,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -66,11 +68,11 @@ const AppSidebar = () => {
 
   const items: MenuGroup[] = [
     {
-      title: "Menu",
+      title: "General",
       items: [
         {
           icon: Home,
-          label: "Home",
+          label: "Dashboard",
           href:
             role === "ADMIN"
               ? "/admin"
@@ -79,16 +81,15 @@ const AppSidebar = () => {
               : "/user",
           visible: ["ADMIN", "MANAGER", "USER"],
         },
+      ],
+    },
+    {
+      title: "Employee Management",
+      items: [
         {
           icon: Users,
-          label: "View employees",
+          label: "Employees",
           href: "/employees",
-          visible: ["ADMIN"],
-        },
-        {
-          icon: User,
-          label: "Create employee",
-          href: "/employees/new",
           visible: ["ADMIN"],
         },
         {
@@ -97,11 +98,16 @@ const AppSidebar = () => {
           href: "/employees/expired-passwords",
           visible: ["ADMIN"],
         },
+      ],
+    },
+    {
+      title: "Accounting",
+      items: [
         {
           icon: NotebookTabsIcon,
           label: "Chart of accounts",
           href: "/chart-of-accounts",
-          visible: ["ADMIN", "USER", "MANAGER"], // Fixed: Use an array of strings
+          visible: ["ADMIN", "USER", "MANAGER"],
         },
         {
           icon: NotebookPenIcon,
@@ -110,20 +116,33 @@ const AppSidebar = () => {
           visible: ["ADMIN"],
         },
         {
+          icon: FileText,
+          label: "Journal Entries",
+          href: "/journal",
+          visible: ["USER", "MANAGER"],
+        },
+      ],
+    },
+    {
+      title: "Logging",
+      items: [
+        {
           icon: Logs,
           label: "Event Logs",
           href: "/events",
           visible: ["ADMIN", "USER", "MANAGER"],
         },
-        {
-          icon: NotebookText,
-          label: "Journal",
-          href: "/journal",
-          visible: ["ADMIN", "USER", "MANAGER"],
-        },
       ],
     },
   ];
+
+  // Filter groups to only include those with visible items for the current role
+  const filteredGroups = items.filter((group) => {
+    if (isLoading) return true; // Show all groups while loading
+    if (!role) return false; // Hide all groups if role isn't loaded yet
+
+    return group.items.some((item) => item.visible.includes(role));
+  });
 
   return (
     <Sidebar>
@@ -134,14 +153,14 @@ const AppSidebar = () => {
             <p>AccuBooks</p>
           </Link>
         </SidebarHeader>
-        {items.map((i) => (
-          <SidebarGroup key={i.title}>
-            <>
-              <SidebarGroupLabel>{i.title}</SidebarGroupLabel>
+        {filteredGroups.map((group, index) => (
+          <div key={group.title}>
+            <SidebarGroup>
+              <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {isLoading
-                    ? i.items.map((item) => (
+                    ? group.items.map((item) => (
                         <SidebarMenuItem key={item.label}>
                           <SidebarMenuButton asChild>
                             <div className="flex items-center gap-2">
@@ -151,28 +170,26 @@ const AppSidebar = () => {
                           </SidebarMenuButton>
                         </SidebarMenuItem>
                       ))
-                    : i.items.map((item) => {
-                        if (role && item.visible.includes(role)) {
-                          return (
-                            <SidebarMenuItem key={item.label}>
-                              <SidebarMenuButton asChild>
-                                <Link
-                                  href={item.href}
-                                  className="flex items-center gap-2"
-                                >
-                                  <item.icon />
-                                  <span>{item.label}</span>
-                                </Link>
-                              </SidebarMenuButton>
-                            </SidebarMenuItem>
-                          );
-                        }
-                        return null;
-                      })}
+                    : group.items
+                        .filter((item) => role && item.visible.includes(role))
+                        .map((item) => (
+                          <SidebarMenuItem key={item.label}>
+                            <SidebarMenuButton asChild>
+                              <Link
+                                href={item.href}
+                                className="flex items-center gap-2"
+                              >
+                                <item.icon />
+                                <span>{item.label}</span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        ))}
                 </SidebarMenu>
               </SidebarGroupContent>
-            </>
-          </SidebarGroup>
+            </SidebarGroup>
+            {index < filteredGroups.length - 1 && <SidebarSeparator />}
+          </div>
         ))}
       </SidebarContent>
     </Sidebar>

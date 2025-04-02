@@ -28,6 +28,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useState } from "react";
+import LoadingOverlay from "../loading-overlay";
 
 const formSchema = z.object({
   username: z.string().min(1, { message: "Username is required" }),
@@ -37,6 +38,7 @@ const formSchema = z.object({
 const LoginForm = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false); // New state for page transition
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -65,6 +67,7 @@ const LoginForm = () => {
       }
 
       const result = await response.json();
+      setIsRedirecting(true);
 
       if (result.role === "ADMIN") {
         router.push("/admin");
@@ -78,8 +81,7 @@ const LoginForm = () => {
         message: "An unexpected error occurred. Please try again",
       });
       setIsLoading(false);
-    } finally {
-      setIsLoading(false);
+      setIsRedirecting(false);
     }
   };
 
@@ -99,6 +101,7 @@ const LoginForm = () => {
 
   return (
     <>
+      {isRedirecting && <LoadingOverlay />}
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">

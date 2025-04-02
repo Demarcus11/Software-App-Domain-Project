@@ -14,6 +14,7 @@ import {
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ExtendedAccount } from "@/app/(dashboard)/chart-of-accounts/page";
+import { Checkbox } from "./ui/checkbox";
 
 export const useColumns = () => {
   const [role, setRole] = useState<string | undefined>(undefined);
@@ -35,6 +36,31 @@ export const useColumns = () => {
   }, []);
 
   const columns: ColumnDef<ExtendedAccount>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => {
+            row.toggleSelected(!!value);
+          }}
+          onClick={(e) => e.stopPropagation()}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
     {
       accessorKey: "number",
       header: ({ column }) => {
@@ -196,6 +222,14 @@ export const useColumns = () => {
                   Edit account
                 </DropdownMenuItem>
               )}
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  router.push(`/ledger/${account.id}`);
+                }}
+              >
+                View ledger
+              </DropdownMenuItem>
               {role === "ADMIN" && (
                 <DropdownMenuItem
                   onClick={(e) => {
@@ -260,16 +294,6 @@ export const useColumns = () => {
                   }}
                 >
                   {account.isActive ? "Deactivate" : "Activate"} Account
-                </DropdownMenuItem>
-              )}
-              {role === "ADMIN" && (
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    router.push(`/transactions/${account.id}/new`);
-                  }}
-                >
-                  Add transaction
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>

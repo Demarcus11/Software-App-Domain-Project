@@ -411,8 +411,8 @@ async function main() {
       name: "Cash",
       number: "100",
       description: "Cash account for daily transactions",
-      initialBalance: 500.0,
-      userId: demoUser.id,
+      initialBalance: 0,
+      userId: admin.id,
       orderId: cashOrder.id, // Links to "01 - Cash" order
       comment: "Main cash account",
       isActive: true,
@@ -420,33 +420,20 @@ async function main() {
       subcategoryId: currentAssetSubcategory.id, // Links to Current Asset subcategory
       statementId: balanceSheetStatement.id,
       normalSide: "Debit",
-      totalDebits: 500.0,
+      totalDebits: 0.0,
       totalCredits: 0.0,
-      balance: 500.0,
+      balance: 0.0,
     },
   });
   console.log("Demo cash account seeded successfully");
-
-  await prisma.eventLog.create({
-    data: {
-      eventType: "CREATE",
-      tableName: "Account",
-      recordId: cashAccount.id,
-      beforeState: Prisma.JsonNull, // No before state for creation
-      afterState: cashAccount, // After state is the newly created account
-      userId: demoUser.id,
-    },
-  });
-
-  console.log("Event log for Cash Account created");
 
   const revenueAccount = await prisma.account.create({
     data: {
       name: "Sales Revenue",
       number: "400",
       description: "Revenue from services",
-      initialBalance: 500.0,
-      userId: demoUser.id,
+      initialBalance: 0.0,
+      userId: admin.id,
       orderId: salesRevenueOrder.id, // Links to "05 - Sales Revenue" order
       comment: "Main revenue account",
       isActive: true,
@@ -455,71 +442,119 @@ async function main() {
       statementId: incomeStatement.id,
       normalSide: "Credit",
       totalDebits: 0.0,
-      totalCredits: 500.0,
-      balance: 500.0,
+      totalCredits: 0.0,
+      balance: 0.0,
     },
   });
 
-  console.log("Demo revenue account seeded successfully");
-
-  await prisma.eventLog.create({
+  /*
+  Journal entry that debits 500 to cash account and credits 500 to revenue account:
+  - create journal entry with APPROVED status
+  - create two transactions, one for cash account and one for revenue account
+  - 
+  */
+  const journalEntry = await prisma.journalEntry.create({
     data: {
-      eventType: "CREATE",
-      tableName: "Account",
-      recordId: revenueAccount.id,
-      beforeState: Prisma.JsonNull, // No before state for creation
-      afterState: revenueAccount, // After state is the newly created account
-      userId: demoUser.id,
+      pr: `PR-${Date.now()}`,
+      description: "Initial service revenue recording",
+      status: "APPROVED",
+      userId: admin.id,
+      date: new Date(2022, 0, 15),
     },
   });
 
-  const debitAssetAccount = await prisma.transaction.create({
-    data: {
-      date: new Date(),
-      description: "Service Revenue",
-      amount: 500.0, // normal side for cash account is debit so 500 will be debited
-      accountId: cashAccount.id,
-      userId: demoUser.id,
-      balance: 500.0,
-    },
-  });
+  await prisma.$transaction([
+    prisma.transaction.create({
+      data: {
+        date: new Date(2022, 0, 15),
+        description: "Service Revenue - Cash Receipt",
+        amount: 500.0,
+        accountId: cashAccount.id,
+        userId: admin.id,
+        journalEntryId: journalEntry.id,
+        balance: 500.0, // debit increases asset acocunts, while credit decreases it
+        type: "DEBIT",
+        isApproved: true,
+      },
+    }),
 
+    prisma.transaction.create({
+      data: {
+        date: new Date(2022, 0, 15),
+        description: "Service Revenue Recognition",
+        amount: 500.0,
+        accountId: revenueAccount.id,
+        userId: admin.id,
+        journalEntryId: journalEntry.id,
+        balance: 500.0,
+        type: "CREDIT",
+        isApproved: true,
+      },
+    }),
+    prisma.account.update({
+      where: { id: cashAccount.id },
+      data: {
+        totalDebits: { increment: 500 },
+        balance: { increment: 500 },
+      },
+    }),
+    prisma.account.update({
+      where: { id: revenueAccount.id },
+      data: {
+        totalCredits: { increment: 500 },
+        balance: { increment: 500 },
+      },
+    }),
+  ]);
+
+  // create events for the transactions
   await prisma.eventLog.create({
     data: {
       eventType: "CREATE",
       tableName: "Transaction",
-      recordId: debitAssetAccount.id,
-      beforeState: Prisma.JsonNull, // No before state for creation
-      afterState: debitAssetAccount, // After state is the newly created transaction
-      userId: demoUser.id,
+      recordId: cashAccount.id,
+      beforeState: Prisma.JsonNull,
+      afterState: cashAccount,
+      userId: admin.id,
     },
   });
+  await prisma.$transaction([
+    // Journal Entry creation event
+    prisma.eventLog.create({
+      data: {
+        eventType: "CREATE",
+        tableName: "JournalEntry",
+        recordId: journalEntry.id,
+        beforeState: Prisma.JsonNull,
+        afterState: journalEntry,
+        userId: admin.id,
+      },
+    }),
 
-  const creditRevenueAccount = await prisma.transaction.create({
-    data: {
-      date: new Date(),
-      description: "Service Revenue",
-      amount: 500.0,
-      accountId: revenueAccount.id, // normal side for revenue account is credit so 500 will be credited
-      userId: demoUser.id,
-      balance: 500.0,
-    },
-  });
+    // Account update events (after transactions)
+    prisma.eventLog.create({
+      data: {
+        eventType: "UPDATE",
+        tableName: "Account",
+        recordId: cashAccount.id,
+        beforeState: { ...cashAccount, balance: 0 }, // Initial state
+        afterState: { ...cashAccount, totalDebits: 500, balance: 500 },
+        userId: admin.id,
+      },
+    }),
+    prisma.eventLog.create({
+      data: {
+        eventType: "UPDATE",
+        tableName: "Account",
+        recordId: revenueAccount.id,
+        beforeState: { ...revenueAccount, balance: 0 }, // Initial state
+        afterState: { ...revenueAccount, totalCredits: 500, balance: 500 },
+        userId: admin.id,
+      },
+    }),
+  ]);
 
-  console.log("Transaction seeded successfully");
-
-  await prisma.eventLog.create({
-    data: {
-      eventType: "CREATE",
-      tableName: "Transaction",
-      recordId: creditRevenueAccount.id,
-      beforeState: Prisma.JsonNull, // No before state for creation
-      afterState: creditRevenueAccount, // After state is the newly created transaction
-      userId: demoUser.id,
-    },
-  });
-
-  console.log("Event log for Transaction created");
+  console.log("Transactions and Events seeded successfully");
 }
 
 main()

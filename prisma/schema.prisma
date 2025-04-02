@@ -67,6 +67,7 @@ model User {
 
   @@map("users")
   Notification Notification[]
+  JournalEntry JournalEntry[]
 }
 
 model Account {
@@ -169,17 +170,21 @@ model Statement {
 model Transaction {
   id              Int       @id @default(autoincrement())
   date            DateTime  @default(now())
+  type            TransactionType
   description     String
   amount          Float     @default(0.00) // Positive value representing the transaction amount
   accountId       Int       // Links to the account
   userId          Int       // User who created the transaction
   balance         Float     @default(0.00) // Balance after the transaction
+  journalEntryId  Int       // Journal entry ID
+  isApproved      Boolean   @default(false)
 
   // Relationships
   account         Account   @relation(fields: [accountId], references: [id])
   user            User      @relation(fields: [userId], references: [id])
 
   @@map("transactions")
+  JournalEntry    JournalEntry @relation(fields: [journalEntryId], references: [id])
 }
 
 model EventLog {
@@ -196,6 +201,34 @@ model EventLog {
   user        User     @relation(fields: [userId], references: [id])
 
   @@map("event_logs")
+}
+
+model JournalEntry {
+  id          Int           @id @default(autoincrement())
+  date        DateTime      
+  description String
+  status      EntryStatus   @default(PENDING) // for admin and manager, automatically approve the journal entry creation
+  comment     String?
+  userId      Int
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  pr          String        @unique // Post Reference number
+
+  user        User          @relation(fields: [userId], references: [id])
+  transactions Transaction[]
+
+  @@map("journal_entries")
+}
+
+enum EntryStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TransactionType {
+  DEBIT
+  CREDIT
 }
 
 model PasswordHistory {

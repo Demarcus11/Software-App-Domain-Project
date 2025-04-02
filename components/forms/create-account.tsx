@@ -27,6 +27,8 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Category, Subcategory, Statement, Order } from "@prisma/client";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Separator } from "../ui/separator";
 
 const formSchema = z.object({
   name: z.string().min(1, "Account name is required"),
@@ -303,162 +305,294 @@ const CreateAccountForm = () => {
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Account Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter account name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <div className="p-6 space-y-8">
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold">Create New Account</h1>
+        <p className="text-muted-foreground">
+          Add a new account to your chart of accounts
+        </p>
+      </div>
 
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Account Description</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter account description" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <Separator />
 
-        <FormField
-          control={form.control}
-          name="normalSide"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Normal Side</FormLabel>
-              <FormControl>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  {...field}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select normal side" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Debit">Debit</SelectItem>
-                    <SelectItem value="Credit">Credit</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Left Column */}
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-medium mb-4">Account Details</h3>
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Account Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="e.g. Cash, Accounts Payable"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-        <FormField
-          control={form.control}
-          name="categoryId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Account Category</FormLabel>
-              <FormControl>
-                <CategoriesSelect {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Brief description of the account"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-        <FormField
-          control={form.control}
-          name="subcategoryId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Account Subcategory</FormLabel>
-              <FormControl>
-                <SubcategoriesSelect {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                  <FormField
+                    control={form.control}
+                    name="normalSide"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Normal Side</FormLabel>
+                        <FormControl>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select normal side" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Debit">Debit</SelectItem>
+                              <SelectItem value="Credit">Credit</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
 
-        <FormField
-          control={form.control}
-          name="initialBalance"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Initial Balance</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  {...field}
-                  value={field.value || ""}
-                  onChange={(e) => {
-                    field.onChange(e.target.valueAsNumber);
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+              <div>
+                <h3 className="text-lg font-medium mb-4">Financial Settings</h3>
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="initialBalance"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Initial Balance</FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                              $
+                            </span>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              className="pl-8"
+                              placeholder="0.00"
+                              {...field}
+                              onChange={(e) =>
+                                field.onChange(e.target.valueAsNumber)
+                              }
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
 
-        <FormField
-          control={form.control}
-          name="statementId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Statement</FormLabel>
-              <FormControl>
-                <StatementsSelect {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            {/* Right Column */}
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-medium mb-4">Classification</h3>
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="categoryId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Category</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={String(field.value)}
+                            onValueChange={(val) => field.onChange(Number(val))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categories.map((category) => (
+                                <SelectItem
+                                  key={category.id}
+                                  value={String(category.id)}
+                                >
+                                  {category.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-        <FormField
-          control={form.control}
-          name="orderId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Account Order</FormLabel>
-              <FormControl>
-                <OrdersSelect {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                  <FormField
+                    control={form.control}
+                    name="subcategoryId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Subcategory</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={String(field.value)}
+                            onValueChange={(val) => field.onChange(Number(val))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select subcategory" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {subcategories.map((subcategory) => (
+                                <SelectItem
+                                  key={subcategory.id}
+                                  value={String(subcategory.id)}
+                                >
+                                  {subcategory.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-        <FormField
-          control={form.control}
-          name="comment"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Comment</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter comment" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                  <FormField
+                    control={form.control}
+                    name="statementId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Financial Statement</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={String(field.value)}
+                            onValueChange={(val) => field.onChange(Number(val))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select statement" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {statements.map((statement) => (
+                                <SelectItem
+                                  key={statement.id}
+                                  value={String(statement.id)}
+                                >
+                                  {statement.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-        {form.formState.errors.root && (
-          <div className="mt-2 text-destructive">
-            <FormMessage>{form.formState.errors.root.message}</FormMessage>
+                  <FormField
+                    control={form.control}
+                    name="orderId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Account Order</FormLabel>
+                        <FormControl>
+                          <Select
+                            value={String(field.value)}
+                            onValueChange={(val) => field.onChange(Number(val))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select order" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {orders.map((order) => (
+                                <SelectItem
+                                  key={order.id}
+                                  value={String(order.id)}
+                                >
+                                  {order.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-4">
+                  Additional Information
+                </h3>
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="comment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Comment</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Optional comment about this account"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-        )}
 
-        <Button type="submit">Create Account</Button>
-      </form>
-    </Form>
+          <Separator />
+
+          <div className="flex justify-end gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => form.reset()}
+            >
+              Reset
+            </Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Creating..." : "Create Account"}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
 };
 

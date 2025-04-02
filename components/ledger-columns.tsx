@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import { ExtendedTransaction } from "@/app/(dashboard)/ledger/[id]/page";
+import Link from "next/link";
 
 export const columns: ColumnDef<ExtendedTransaction>[] = [
   {
@@ -49,7 +50,7 @@ export const columns: ColumnDef<ExtendedTransaction>[] = [
     },
   },
   {
-    accessorKey: "description",
+    accessorKey: "JournalEntry.description",
     header: "Description",
   },
   {
@@ -70,6 +71,21 @@ export const columns: ColumnDef<ExtendedTransaction>[] = [
         style: "currency",
         currency: "USD",
       }).format(row.getValue("credit"));
+    },
+  },
+  {
+    accessorKey: "JournalEntry.pr",
+    header: "PR#",
+    cell: ({ row }) => {
+      const pr = row.original.JournalEntry.pr;
+      console.log(pr);
+      return (
+        <Link href={`/journal/${row.original.JournalEntry.id}`} passHref>
+          <Button variant="link" className="p-0">
+            {pr}
+          </Button>
+        </Link>
+      );
     },
   },
   {

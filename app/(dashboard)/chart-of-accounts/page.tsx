@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
 import { AccountsDataTable } from "@/components/accounts-data-table";
 import { useColumns } from "@/components/accounts-columns";
-
 import { Account, Transaction } from "@prisma/client";
+import { Loader } from "lucide-react";
 
 export interface ExtendedAccount extends Account {
   categoryName: string;
@@ -14,6 +13,9 @@ export interface ExtendedAccount extends Account {
 }
 
 const ChartOfAccountsPage = () => {
+  // Always call hooks unconditionally at the top
+  const columns = useColumns();
+
   // Original accounts data without any processing
   const [rawAccounts, setRawAccounts] = useState<ExtendedAccount[]>([]);
   // Processed accounts with all the additional data
@@ -31,6 +33,7 @@ const ChartOfAccountsPage = () => {
     Array<{ id: number; name: string }>
   >([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Track loading states
   const [dataLoaded, setDataLoaded] = useState({
@@ -40,6 +43,9 @@ const ChartOfAccountsPage = () => {
     statements: false,
     transactions: false,
   });
+
+  // Combined loading state
+  const allDataLoaded = Object.values(dataLoaded).every((status) => status);
 
   // Fetch accounts only once
   useEffect(() => {
@@ -133,52 +139,42 @@ const ChartOfAccountsPage = () => {
 
   // Process all data once all fetches are complete
   useEffect(() => {
-    // Check if all data is loaded
-    const allDataLoaded = Object.values(dataLoaded).every((status) => status);
+    if (!allDataLoaded) return;
 
-    if (!allDataLoaded) return; // Wait until all data is loaded
-
-    // If we get here, all data is loaded and we can process it
     const updatedAccounts = rawAccounts.map((account) => {
-      // Find category name
       const categoryName =
-        categories.find((category) => category.id === account.categoryId)
-          ?.name || "";
-
-      // Find subcategory name
+        categories.find((c) => c.id === account.categoryId)?.name || "";
       const subcategoryName =
-        subcategories.find(
-          (subcategory) => subcategory.id === account.subcategoryId
-        )?.name || "";
-
-      // Find statement name
+        subcategories.find((s) => s.id === account.subcategoryId)?.name || "";
       const statementName =
-        statements.find((statement) => statement.id === account.statementId)
-          ?.name || "";
+        statements.find((s) => s.id === account.statementId)?.name || "";
 
-      // Use the balance directly from the account
-      const balance = account.balance;
-
-      console.log(rawAccounts);
-
-      // Return the processed account
       return {
         ...account,
         categoryName,
         subcategoryName,
         statementName,
-        balance: Math.abs(balance), // Ensure balance is always positive
+        balance: account.balance,
       };
     });
 
-    // Set the processed accounts
     setProcessedAccounts(updatedAccounts);
-  }, [dataLoaded, rawAccounts, categories, subcategories, statements]);
+    setLoading(false);
+  }, [allDataLoaded, rawAccounts, categories, subcategories, statements]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen gap-2">
+        <Loader className="animate-spin" />
+        <span>Loading accounts...</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-4 p-4">
       <h1 className="text-2xl font-medium">Chart of accounts</h1>
-      <AccountsDataTable columns={useColumns()} data={processedAccounts} />
+      <AccountsDataTable columns={columns} data={processedAccounts} />
     </div>
   );
 };

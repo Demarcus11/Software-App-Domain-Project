@@ -11,6 +11,7 @@ import {
 import { NextResponse } from "next/server";
 import getSuspensionMessage from "@/lib/get-suspension-message";
 import generateToken from "@/lib/generate-token";
+import prisma from "@/lib/prisma";
 
 const MAX_FAILED_LOGIN_ATTEMPTS = 3;
 
@@ -82,11 +83,27 @@ export async function POST(request: Request) {
         passwordExpiresAt <= threeDaysFromNow &&
         passwordExpiresAt >= new Date()
       ) {
-        // Create a notification for the user
-        await createNotification({
-          userId: user.id,
-          message: `Your password will expire in 3 days. Please reset your password.`,
+        // First check for existing notifications
+        const existingNotification = await prisma.notification.findFirst({
+          where: {
+            userId: user.id,
+            message: {
+              contains: "Your password will expire in 3 days",
+            },
+            createdAt: {
+              // Only consider notifications created in the last 3 days
+              gte: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+            },
+          },
         });
+
+        // Only create notification if one doesn't already exist
+        if (!existingNotification) {
+          await createNotification({
+            userId: user.id,
+            message: `Your password will expire in 3 days. Please reset your password.`,
+          });
+        }
       }
 
       const jwt_secret = process.env.JWT_SECRET;
