@@ -2,11 +2,7 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-interface Params {
-  id: string;
-}
-
-export async function GET(request: Request, { params }: { params: Params }) {
+export async function GET(request: Request, { params }: any) {
   try {
     const accountId = parseInt(params.id);
 

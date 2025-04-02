@@ -54,10 +54,7 @@ export async function GET(request: NextRequest) {
 }
 
 // Mark a notification as read
-export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request, { params }: any) {
   try {
     // Mark the notification as read
     await prisma.notification.update({

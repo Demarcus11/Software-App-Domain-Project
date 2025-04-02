@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { AccountCategory, generateAccountNumber } from "../../new/route";
+import { generateAccountNumber, AccountCategory } from "@/lib/account-utils";
 
 // Validation schema
 const registerSchema = z.object({

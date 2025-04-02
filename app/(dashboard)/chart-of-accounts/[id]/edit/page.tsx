@@ -4,7 +4,7 @@ import EditEmployeeForm from "@/components/forms/edit-employee";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import BackButton from "@/components/back-button";
+import { BackButton } from "@/components/back-button";
 import { Account } from "@prisma/client";
 import { useParams } from "next/navigation";
 import { EditAccountForm } from "@/components/forms/edit-account-form";
@@ -36,10 +36,7 @@ const EditAccountPage = ({ params }: EditAccountPageProps) => {
 
   return (
     <div className="grid gap-4">
-      <BackButton
-        link={`/chart-of-accounts`}
-        text="Back to chart of accounts"
-      />
+      <BackButton className="pl-[5rem] mb-0">Back</BackButton>
       <h1 className="text-xl font-medium">Edit Account</h1>
 
       <EditAccountForm account={account} />

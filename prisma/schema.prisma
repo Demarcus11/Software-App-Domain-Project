@@ -176,7 +176,7 @@ model Transaction {
   accountId       Int       // Links to the account
   userId          Int       // User who created the transaction
   balance         Float     @default(0.00) // Balance after the transaction
-  journalEntryId  Int       // Journal entry ID
+  journalEntryId  Int?       // Journal entry ID
   isApproved      Boolean   @default(false)
 
   // Relationships
@@ -184,7 +184,7 @@ model Transaction {
   user            User      @relation(fields: [userId], references: [id])
 
   @@map("transactions")
-  JournalEntry    JournalEntry @relation(fields: [journalEntryId], references: [id])
+  JournalEntry    JournalEntry? @relation(fields: [journalEntryId], references: [id])
 }
 
 model EventLog {

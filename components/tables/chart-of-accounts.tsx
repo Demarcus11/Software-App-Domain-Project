@@ -35,6 +35,7 @@ export const ChartOfAccountsTable = () => {
       <DataTable
         columns={chartOfAccountsColumns(fetchChartOfAccounts, windowSize)}
         data={accounts}
+        type="accounts"
         filterBy="account number"
       />
     </>

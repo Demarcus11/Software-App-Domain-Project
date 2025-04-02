@@ -1,7 +1,9 @@
+import { z } from "zod";
+import { Category } from "@prisma/client";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { z } from "zod";
-import { Category, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import { generateAccountNumber, AccountCategory } from "@/lib/account-utils";
 
 // Validation schema
 const formSchema = z.object({
@@ -31,44 +33,6 @@ const formSchema = z.object({
   statement: z.enum(["IS", "BS", "RE"]),
   comment: z.string().optional(),
 });
-
-export type AccountCategory =
-  | "Asset"
-  | "Liability"
-  | "Equity"
-  | "Revenue"
-  | "Expenses";
-
-export const generateAccountNumber = async (category: AccountCategory) => {
-  const prefixes = {
-    Asset: "100",
-    Liability: "200",
-    Equity: "300",
-    Revenue: "400",
-    Expenses: "500",
-  };
-
-  const prefix = prefixes[category];
-
-  // Find the last account number for the category
-  const lastAccountNumber = await prisma.account.findFirst({
-    orderBy: { number: "desc" },
-    where: { number: { startsWith: prefix[0] } }, // Search for first digit of prefix
-  });
-
-  console.log("Last Account Number:", lastAccountNumber?.number);
-
-  // If no accounts exist for this category, start with the base number
-  if (!lastAccountNumber) {
-    return prefix; // Returns "100" for Asset, "200" for Liability, etc.
-  }
-
-  // Parse the last account number as an integer and increment
-  const lastNumberValue = parseInt(lastAccountNumber.number);
-  const nextNumberValue = lastNumberValue + 1;
-
-  return nextNumberValue.toString();
-};
 
 export async function POST(request: Request) {
   try {
@@ -165,9 +129,10 @@ export async function POST(request: Request) {
           date: new Date(),
           description: transactionDescription,
           amount: transactionAmount,
-          balance: initialBalance, // Set the balance in the transaction
+          balance: initialBalance,
           accountId: newAccount.id,
           userId,
+          type: normalSide === "Debit" ? "DEBIT" : "CREDIT",
         },
       });
     }

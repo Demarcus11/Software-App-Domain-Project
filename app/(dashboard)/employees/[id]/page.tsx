@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { Employee } from "@/types";
 import { useParams } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
-import BackButton from "@/components/back-button";
+import { BackButton } from "@/components/back-button";
 
 const ViewEmployeePage = () => {
   const [employee, setEmployee] = useState<Employee | null>(null);
@@ -40,7 +40,8 @@ const ViewEmployeePage = () => {
 
   return (
     <div className="grid gap-4">
-      <BackButton link="/employees" text="Back to employees" />
+      <BackButton>Back</BackButton>
+
       <h1 className="text-xl font-bold">View Employee</h1>
 
       <div className="flex justify-between items-center">

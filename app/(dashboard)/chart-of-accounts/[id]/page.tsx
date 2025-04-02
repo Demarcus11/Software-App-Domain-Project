@@ -5,7 +5,7 @@ import { SquarePen } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import BackButton from "@/components/back-button";
+import { BackButton } from "@/components/back-button";
 import {
   Account,
   Category,
@@ -209,11 +209,8 @@ const ViewAccountPage = ({ params }: ViewAccountPageProps) => {
 
   return (
     <>
+      <BackButton>Back</BackButton>
       <div className="grid gap-4">
-        <BackButton
-          link="/chart-of-accounts"
-          text="Back to chart of accounts"
-        />
         <h1 className="text-xl font-bold">View Account</h1>
 
         {isLoading ? (

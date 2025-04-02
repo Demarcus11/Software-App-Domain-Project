@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Employee } from "@/types";
 import { useParams } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
-import BackButton from "@/components/back-button";
+import { BackButton } from "@/components/back-button";
 import { Transaction } from "@prisma/client";
 import { EditTransactionForm } from "@/components/forms/edit-transaction-form";
 
@@ -16,7 +16,8 @@ const EditLedgerPage = () => {
 
   return (
     <div className="grid gap-4">
-      <BackButton link={`/ledger/${id}`} text="Back to ledger" />
+      <BackButton>Back</BackButton>
+
       <h1 className="text-xl font-medium">Edit Transaction Id: {id}</h1>
 
       <EditTransactionForm />

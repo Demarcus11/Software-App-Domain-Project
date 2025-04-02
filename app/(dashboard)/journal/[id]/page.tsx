@@ -5,13 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { BackButton } from "@/components/back-button";
 
-interface JournalEntryDetailPageProps {
+// Define the expected props type
+type PageProps = {
   params: { id: string };
-}
+  searchParams?: { [key: string]: string | string[] | undefined };
+};
 
-export default async function JournalEntryDetailPage({
-  params,
-}: JournalEntryDetailPageProps) {
+export default async function JournalEntryDetailPage({ params }: any) {
   const journalEntryId = parseInt(params.id);
 
   if (isNaN(journalEntryId)) {

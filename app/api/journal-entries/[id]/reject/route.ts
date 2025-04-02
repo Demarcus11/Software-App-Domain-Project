@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: Request, { params }: any) {
   try {
     const journalEntryId = parseInt(params.id);
-    const { comment, userId } = await req.json();
+    const { comment, userId } = await request.json();
 
     if (isNaN(journalEntryId)) {
       return NextResponse.json(
