@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { generatePrNumber } from "@/lib/account-utils";
 
 export async function POST(request: Request) {
   try {
-    const { description, date, transactions, userId } = await request.json();
+    const {
+      description,
+      date,
+      transactions,
+      userId,
+      isAdjusting = false,
+    } = await request.json();
 
     // 1. Validate required fields
     if (!description || !transactions || !userId) {
@@ -76,11 +83,12 @@ export async function POST(request: Request) {
     const result = await prisma.$transaction(async (prisma) => {
       const journalEntry = await prisma.journalEntry.create({
         data: {
-          pr: `PR-${Date.now()}`,
+          pr: await generatePrNumber(),
           description,
           date: new Date(date),
           status: "PENDING",
           userId: Number(userId),
+          isAdjusting: Boolean(isAdjusting),
         },
       });
 

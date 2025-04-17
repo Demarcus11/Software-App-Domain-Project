@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { Category } from "@prisma/client";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
@@ -167,6 +166,7 @@ export async function POST(request: Request) {
       // Handle generic errors
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
+      console.log(errorMessage);
       return NextResponse.json(
         { message: "An unexpected error occurred", error: errorMessage },
         { status: 500 }

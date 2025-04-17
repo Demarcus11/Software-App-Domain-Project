@@ -33,13 +33,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { ExtendedJournalEntry } from "@/types/journal";
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+  columns: ColumnDef<ExtendedJournalEntry>[];
+  data: ExtendedJournalEntry[];
 }
 
-export function JournalDataTable<TData, TValue>({
+export function JournalDataTable<TData extends ExtendedJournalEntry, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
@@ -68,6 +69,24 @@ export function JournalDataTable<TData, TValue>({
       columnFilters,
     },
     onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: (row, columnId, filterValue) => {
+      // Search across PR #, description, and account names
+      const searchStr = filterValue.toLowerCase();
+      const entry = row.original;
+
+      // Check PR # and description
+      if (
+        String(entry.pr).toLowerCase().includes(searchStr) ||
+        String(entry.description).toLowerCase().includes(searchStr)
+      ) {
+        return true;
+      }
+
+      // Check account names in transactions
+      return entry.transactions.some((t) =>
+        t.account.name.toLowerCase().includes(searchStr)
+      );
+    },
   });
 
   // Apply filters

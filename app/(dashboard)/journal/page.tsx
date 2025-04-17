@@ -5,9 +5,15 @@ import { useColumns } from "@/components/journal-columns";
 import { useEffect, useState } from "react";
 import { ExtendedJournalEntry } from "@/types/journal";
 import { Loader } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function JournalPage() {
-  const [data, setData] = useState<ExtendedJournalEntry[]>([]);
+  const [journalEntries, setJournalEntries] = useState<ExtendedJournalEntry[]>(
+    []
+  );
+  const [adjustingEntries, setAdjustingEntries] = useState<
+    ExtendedJournalEntry[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const columns = useColumns();
 
@@ -16,7 +22,13 @@ export default function JournalPage() {
       try {
         const response = await fetch("/api/journal-entries");
         const result = await response.json();
-        setData(result);
+
+        const adjustingEntries = result.filter(
+          (entry: ExtendedJournalEntry) => entry.isAdjusting
+        );
+
+        setJournalEntries(result);
+        setAdjustingEntries(adjustingEntries);
       } catch (error) {
         console.error("Error fetching journal entries:", error);
       } finally {
@@ -38,7 +50,26 @@ export default function JournalPage() {
 
   return (
     <div className="container mx-auto py-10">
-      <JournalDataTable columns={columns} data={data} />
+      <Tabs defaultValue="journal" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 max-w-md mb-6">
+          <TabsTrigger value="journal">Journal Entries</TabsTrigger>
+          <TabsTrigger value="adjusting">Adjusting Entries</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="journal">
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold">General Journal Entries</h2>
+            <JournalDataTable columns={columns} data={journalEntries} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="adjusting">
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold">Adjusting Journal Entries</h2>
+            <JournalDataTable columns={columns} data={adjustingEntries} />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

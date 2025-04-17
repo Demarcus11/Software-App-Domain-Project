@@ -30,3 +30,16 @@ export interface Roles {
   id: number;
   role: string;
 }
+
+export interface ExtendedTransaction {
+  id: string;
+  date: Date;
+  debit: number;
+  credit: number;
+  balance: number;
+  JournalEntry: {
+    id: string;
+    pr: string;
+    description: string;
+  };
+}

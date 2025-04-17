@@ -1,11 +1,21 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { ExtendedJournalEntry } from "@/types/journal";
 
 export async function GET() {
   try {
     const entries = await prisma.journalEntry.findMany({
       include: {
+        transactions: {
+          include: {
+            account: {
+              select: {
+                id: true,
+                name: true,
+                number: true,
+              },
+            },
+          },
+        },
         user: {
           select: {
             id: true,
@@ -18,37 +28,7 @@ export async function GET() {
       },
     });
 
-    console.log(entries);
-
-    // 2. Fetch transactions for each journal entry
-    const entriesWithTransactions = await Promise.all(
-      entries.map(async (entry) => {
-        const transactions = await prisma.transaction.findMany({
-          where: { journalEntryId: entry.id },
-          include: {
-            account: {
-              select: {
-                id: true,
-                name: true,
-                number: true,
-              },
-            },
-            user: {
-              select: {
-                id: true,
-                username: true,
-              },
-            },
-          },
-        });
-        return {
-          ...entry,
-          transactions,
-        };
-      })
-    );
-
-    return NextResponse.json(entriesWithTransactions);
+    return NextResponse.json(entries);
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch journal entries" },

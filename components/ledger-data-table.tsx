@@ -22,46 +22,44 @@ import {
 } from "@/components/ui/table";
 
 import { Input } from "@/components/ui/input";
-
+import { DateRange } from "react-day-picker";
+import { DateRangePicker } from "./ui/date-range-picker";
 import React from "react";
-
 import { useRouter } from "next/navigation";
+import { ExtendedTransaction } from "@/app/(dashboard)/ledger/[id]/page";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+interface DataTableProps {
+  columns: ColumnDef<ExtendedTransaction>[];
+  data: ExtendedTransaction[];
 }
 
-export function LedgerDataTable<TData, TValue>({
-  columns,
-  data,
-}: DataTableProps<TData, TValue>) {
+export function LedgerDataTable({ columns, data }: DataTableProps) {
   const router = useRouter();
   const [globalFilter, setGlobalFilter] = React.useState<string>("");
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
+  const [debitFilter, setDebitFilter] = React.useState<string>("");
+  const [creditFilter, setCreditFilter] = React.useState<string>("");
+  const [descriptionFilter, setDescriptionFilter] = React.useState<string>("");
 
-  // Custom filter function
-  const multiColumnFilter: FilterFn<any> = (row, columnId, value) => {
-    const accountNumber = String(row.getValue("accountNumber") || "");
-    const accountName = String(row.getValue("accountName") || "");
-    const categoryName = String(row.getValue("categoryName") || "");
-    const statementName = String(row.getValue("statementName") || "");
-
-    // For balance, we need to handle numeric values
-    let balance = "";
-    const balanceValue = row.getValue("balance");
-    if (balanceValue !== null && balanceValue !== undefined) {
-      balance = String(balanceValue);
-    }
-
-    const searchValue = value.toLowerCase();
+  const globalFilterFn: FilterFn<ExtendedTransaction> = (
+    row,
+    columnId,
+    filterValue
+  ) => {
+    const searchStr = filterValue.toLowerCase();
+    const transaction = row.original;
 
     return (
-      accountNumber.toLowerCase().includes(searchValue) ||
-      accountName.toLowerCase().includes(searchValue) ||
-      categoryName.toLowerCase().includes(searchValue) ||
-      statementName.toLowerCase().includes(searchValue) ||
-      balance.toLowerCase().includes(searchValue)
+      transaction.description.toLowerCase().includes(searchStr) ||
+      transaction.JournalEntry.description.toLowerCase().includes(searchStr) ||
+      transaction.JournalEntry.pr.toLowerCase().includes(searchStr) ||
+      String(transaction.debit).includes(searchStr) ||
+      String(transaction.credit).includes(searchStr) ||
+      String(transaction.balance).includes(searchStr)
     );
   };
 
@@ -72,23 +70,96 @@ export function LedgerDataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
+    onColumnFiltersChange: setColumnFilters,
     state: {
       globalFilter,
       sorting,
+      columnFilters,
     },
     onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: multiColumnFilter,
+    globalFilterFn: globalFilterFn,
   });
+
+  React.useEffect(() => {
+    const filters = [];
+
+    // Date range filter
+    if (dateRange?.from || dateRange?.to) {
+      filters.push({
+        id: "date",
+        value: {
+          from: dateRange.from,
+          to: dateRange.to,
+        },
+      });
+    }
+
+    // Debit filter
+    if (debitFilter) {
+      filters.push({
+        id: "debit",
+        value: parseFloat(debitFilter),
+      });
+    }
+
+    // Credit filter
+    if (creditFilter) {
+      filters.push({
+        id: "credit",
+        value: parseFloat(creditFilter),
+      });
+    }
+
+    // Description filter
+    if (descriptionFilter) {
+      filters.push({
+        id: "description",
+        value: descriptionFilter,
+      });
+    }
+
+    table.setColumnFilters(filters);
+  }, [dateRange, debitFilter, creditFilter, descriptionFilter, table]);
 
   return (
     <>
-      <div className="flex items-center py-4">
-        <Input
-          placeholder="Filter by account number, name, category, statement, or balance..."
-          value={globalFilter}
-          onChange={(event) => setGlobalFilter(event.target.value)}
-          className="max-w-md"
-        />
+      <div className="flex flex-col gap-4 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex gap-4">
+            <Input
+              placeholder="Search across all fields..."
+              value={globalFilter}
+              onChange={(event) => setGlobalFilter(event.target.value)}
+              className="max-w-md"
+            />
+            <Input
+              placeholder="Filter by debit amount..."
+              value={debitFilter}
+              onChange={(event) => setDebitFilter(event.target.value)}
+              type="number"
+              className="max-w-[200px]"
+            />
+            <Input
+              placeholder="Filter by credit amount..."
+              value={creditFilter}
+              onChange={(event) => setCreditFilter(event.target.value)}
+              type="number"
+              className="max-w-[200px]"
+            />
+            <Input
+              placeholder="Filter by description..."
+              value={descriptionFilter}
+              onChange={(event) => setDescriptionFilter(event.target.value)}
+              className="max-w-[200px]"
+            />
+          </div>
+        </div>
+        <div className="flex gap-4">
+          <DateRangePicker
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+          />
+        </div>
       </div>
 
       <div className="rounded-md border">
@@ -96,18 +167,16 @@ export function LedgerDataTable<TData, TValue>({
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  );
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
@@ -121,13 +190,10 @@ export function LedgerDataTable<TData, TValue>({
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        // router.push(
-                        //   `/ledger/${cell.row.original.accountNumber}`
-                        // );
+                      onClick={() => {
+                        router.push(`/journal/${row.original.JournalEntry.id}`);
                       }}
+                      className="cursor-pointer hover:bg-gray-50"
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
@@ -143,7 +209,7 @@ export function LedgerDataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  No results found.
                 </TableCell>
               </TableRow>
             )}

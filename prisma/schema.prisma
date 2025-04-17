@@ -208,6 +208,8 @@ model JournalEntry {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   pr          String        @unique // Post Reference number
+  isAdjusting Boolean       @default(false)
+
 
   user        User          @relation(fields: [userId], references: [id])
   transactions Transaction[]

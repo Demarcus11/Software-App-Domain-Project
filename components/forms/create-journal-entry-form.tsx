@@ -26,10 +26,12 @@ import {
 } from "@/components/ui/select";
 import { useState, useEffect } from "react";
 import { Account } from "@prisma/client";
+import { Checkbox } from "../ui/checkbox";
 
 const formSchema = z.object({
   date: z.date(),
   description: z.string().min(1, "Description is required"),
+  isAdjusting: z.boolean().optional(),
   transactions: z
     .array(
       z.object({
@@ -180,6 +182,22 @@ export default function JournalEntryForm() {
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="isAdjusting"
+            render={({ field }) => (
+              <FormItem className="flex items-end gap-2">
+                <FormLabel>Adjusting Entry?</FormLabel>
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
+          />
         </div>
 
         <div className="space-y-4">
@@ -281,9 +299,9 @@ export default function JournalEntryForm() {
           ))}
         </div>
 
-        {form.formState.errors.transactions && (
+        {form.formState.errors.transactions?.root?.message && (
           <div className="text-destructive">
-            {form.formState.errors.transactions.message}
+            {form.formState.errors.transactions?.root?.message}
           </div>
         )}
 

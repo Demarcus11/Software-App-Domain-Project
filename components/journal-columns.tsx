@@ -121,9 +121,7 @@ export const useColumns = () => {
       accessorKey: "transactions",
       header: "Transactions",
       cell: ({ row }) => {
-        const transactions = row.getValue(
-          "transactions"
-        ) as ExtendedJournalEntry["transactions"];
+        const transactions = row.original.transactions; // Access directly from original
         return (
           <div className="space-y-1">
             {transactions.map((t, i) => (
@@ -136,18 +134,16 @@ export const useColumns = () => {
         );
       },
       filterFn: (row, columnId, filterValue) => {
-        const transactions = row.getValue(
-          columnId
-        ) as ExtendedJournalEntry["transactions"];
+        const transactions = row.original.transactions; // Access directly from original
 
-        // Amount filter
+        // Handle amount filter
         if (filterValue?.amount !== undefined) {
           return transactions.some(
             (t) => Math.abs(t.amount - filterValue.amount) < 0.01
           );
         }
 
-        // Account name filter
+        // Handle account name filter
         if (filterValue?.accountName) {
           return transactions.some((t) =>
             t.account.name

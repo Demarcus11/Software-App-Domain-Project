@@ -22,6 +22,7 @@ import {
   Logs,
   NotebookText,
   FileText,
+  LandmarkIcon,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -120,6 +121,12 @@ const AppSidebar = () => {
           label: "Journal Entries",
           href: "/journal",
           visible: ["USER", "MANAGER"],
+        },
+        {
+          icon: LandmarkIcon,
+          label: "Financial Reports",
+          href: "/financial-reports",
+          visible: ["MANAGER"],
         },
       ],
     },

@@ -17,7 +17,6 @@ export type ExtendedTransaction = {
   balance: number;
   accountId: number;
   JournalEntry: {
-    // Change from optional array to required single object
     id: number;
     pr: string;
     description: string;

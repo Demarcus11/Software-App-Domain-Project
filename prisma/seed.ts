@@ -285,161 +285,149 @@ async function main() {
 
   console.log("Expired user seeded successfully");
 
-  const assetCategory = await prisma.category.create({
-    data: {
-      name: "Asset",
-    },
-  });
-
-  const liabilitesCategory = await prisma.category.create({
-    data: {
-      name: "Liability",
-    },
-  });
-
-  const equityCategory = await prisma.category.create({
-    data: {
-      name: "Equity",
-    },
-  });
-
-  const revenueCategory = await prisma.category.create({
-    data: {
-      name: "Revenue",
-    },
-  });
-
-  const expensesCategory = await prisma.category.create({
-    data: {
-      name: "Expenses",
-    },
-  });
+  // Seed Categories
+  const [
+    currentAssetCategory,
+    nonCurrentAssetCategory,
+    currentLiabilityCategory,
+    nonCurrentLiabilityCategory,
+    ownersEquityCategory,
+    operatingRevenueCategory,
+    operatingExpenseCategory,
+  ] = await prisma.$transaction([
+    prisma.category.create({ data: { name: "Current Asset" } }),
+    prisma.category.create({ data: { name: "Non-Current Asset" } }),
+    prisma.category.create({ data: { name: "Current Liability" } }),
+    prisma.category.create({ data: { name: "Non-Current Liability" } }),
+    prisma.category.create({ data: { name: "Owner's Equity" } }),
+    prisma.category.create({ data: { name: "Operating Revenue" } }),
+    prisma.category.create({ data: { name: "Operating Expense" } }),
+  ]);
 
   console.log("Categories seeded successfully");
 
-  const currentAssetSubcategory = await prisma.subcategory.create({
-    data: {
-      name: "Current Asset",
-      categoryId: assetCategory.id, // Links to Asset category
-    },
-  });
-
-  const currentLiabilitiesSubcategory = await prisma.subcategory.create({
-    data: {
-      name: "Current Liabilities",
-      categoryId: liabilitesCategory.id, // Links to Liabilities category
-    },
-  });
-
-  const ownersEquitySubcategory = await prisma.subcategory.create({
-    data: {
-      name: "Owner's Equity",
-      categoryId: equityCategory.id, // Links to Equity category
-    },
-  });
-
-  const salesRevenueSubcategory = await prisma.subcategory.create({
-    data: {
-      name: "Sales Revenue",
-      categoryId: revenueCategory.id, // Links to Revenue category
-    },
-  });
-
-  const operatingExpensesSubcategory = await prisma.subcategory.create({
-    data: {
-      name: "Operating Expenses",
-      categoryId: expensesCategory.id, // Links to Expenses category
-    },
-  });
+  // Seed Subcategories
+  const [
+    cashSubcategory,
+    accountsReceivableSubcategory,
+    propertySubcategory,
+    equipmentSubcategory,
+    accountsPayableSubcategory,
+    longTermDebtSubcategory,
+    ownersCapitalSubcategory,
+    salesRevenueSubcategory,
+    utilitiesSubcategory,
+  ] = await prisma.$transaction([
+    prisma.subcategory.create({
+      data: { name: "Cash", categoryId: currentAssetCategory.id },
+    }),
+    prisma.subcategory.create({
+      data: {
+        name: "Accounts Receivable",
+        categoryId: currentAssetCategory.id,
+      },
+    }),
+    prisma.subcategory.create({
+      data: { name: "Property", categoryId: nonCurrentAssetCategory.id },
+    }),
+    prisma.subcategory.create({
+      data: { name: "Equipment", categoryId: nonCurrentAssetCategory.id },
+    }),
+    prisma.subcategory.create({
+      data: {
+        name: "Accounts Payable",
+        categoryId: currentLiabilityCategory.id,
+      },
+    }),
+    prisma.subcategory.create({
+      data: {
+        name: "Long-Term Debt",
+        categoryId: nonCurrentLiabilityCategory.id,
+      },
+    }),
+    prisma.subcategory.create({
+      data: { name: "Owner's Capital", categoryId: ownersEquityCategory.id },
+    }),
+    prisma.subcategory.create({
+      data: { name: "Sales Revenue", categoryId: operatingRevenueCategory.id },
+    }),
+    prisma.subcategory.create({
+      data: { name: "Utilities", categoryId: operatingExpenseCategory.id },
+    }),
+  ]);
 
   console.log("Subcategories seeded successfully");
 
-  const balanceSheetStatement = await prisma.statement.create({
-    data: {
-      name: "Balance Sheet",
-    },
-  });
-
-  const incomeStatement = await prisma.statement.create({
-    data: {
-      name: "Income Statement",
-    },
-  });
+  // Seed Statements
+  const [
+    assetStatement,
+    liabilityStatement,
+    equityStatement,
+    revenueStatement,
+    expenseStatement,
+  ] = await prisma.$transaction([
+    prisma.statement.create({ data: { name: "Asset" } }),
+    prisma.statement.create({ data: { name: "Liability" } }),
+    prisma.statement.create({ data: { name: "Equity" } }),
+    prisma.statement.create({ data: { name: "Revenue" } }),
+    prisma.statement.create({ data: { name: "Expense" } }),
+  ]);
 
   console.log("Statements seeded successfully");
 
-  const cashOrder = await prisma.order.create({
-    data: {
-      name: "01 - Cash",
-    },
-  });
-
-  const accountsReceivableOrder = await prisma.order.create({
-    data: {
-      name: "02 - Accounts Receivable",
-    },
-  });
-
-  const accountsPayableOrder = await prisma.order.create({
-    data: {
-      name: "03 - Accounts Payable",
-    },
-  });
-
-  const ownersEquityOrder = await prisma.order.create({
-    data: {
-      name: "04 - Owner's Equity",
-    },
-  });
-
-  const salesRevenueOrder = await prisma.order.create({
-    data: {
-      name: "05 - Sales Revenue",
-    },
-  });
-
-  const rentExpensesOrder = await prisma.order.create({
-    data: {
-      name: "06 - Rent Expenses",
-    },
-  });
+  // Seed Orders
+  const [
+    cashOrder,
+    accountsReceivableOrder,
+    accountsPayableOrder,
+    ownersEquityOrder,
+    salesRevenueOrder,
+    rentExpensesOrder,
+  ] = await prisma.$transaction([
+    prisma.order.create({ data: { name: "01 - Cash" } }),
+    prisma.order.create({ data: { name: "02 - Accounts Receivable" } }),
+    prisma.order.create({ data: { name: "03 - Accounts Payable" } }),
+    prisma.order.create({ data: { name: "04 - Owner's Equity" } }),
+    prisma.order.create({ data: { name: "05 - Sales Revenue" } }),
+    prisma.order.create({ data: { name: "06 - Rent Expenses" } }),
+  ]);
 
   console.log("Orders seeded successfully");
 
+  // Seed Accounts
   const cashAccount = await prisma.account.create({
     data: {
       name: "Cash",
-      number: "100",
+      number: "1000000000",
       description: "Cash account for daily transactions",
       initialBalance: 0,
       userId: admin.id,
-      orderId: cashOrder.id, // Links to "01 - Cash" order
+      orderId: cashOrder.id,
       comment: "Main cash account",
       isActive: true,
-      categoryId: assetCategory.id,
-      subcategoryId: currentAssetSubcategory.id, // Links to Current Asset subcategory
-      statementId: balanceSheetStatement.id,
+      categoryId: currentAssetCategory.id,
+      subcategoryId: cashSubcategory.id,
+      statementId: assetStatement.id,
       normalSide: "Debit",
       totalDebits: 0.0,
       totalCredits: 0.0,
       balance: 0.0,
     },
   });
-  console.log("Demo cash account seeded successfully");
 
   const revenueAccount = await prisma.account.create({
     data: {
       name: "Sales Revenue",
-      number: "400",
+      number: "4000000000",
       description: "Revenue from services",
       initialBalance: 0.0,
       userId: admin.id,
-      orderId: salesRevenueOrder.id, // Links to "05 - Sales Revenue" order
+      orderId: salesRevenueOrder.id,
       comment: "Main revenue account",
       isActive: true,
-      categoryId: revenueCategory.id,
-      subcategoryId: salesRevenueSubcategory.id, // Links to Sales Revenue subcategory
-      statementId: incomeStatement.id,
+      categoryId: operatingRevenueCategory.id,
+      subcategoryId: salesRevenueSubcategory.id,
+      statementId: revenueStatement.id,
       normalSide: "Credit",
       totalDebits: 0.0,
       totalCredits: 0.0,
@@ -447,15 +435,157 @@ async function main() {
     },
   });
 
-  /*
-  Journal entry that debits 500 to cash account and credits 500 to revenue account:
-  - create journal entry with APPROVED status
-  - create two transactions, one for cash account and one for revenue account
-  - 
-  */
+  const payableAccount = await prisma.account.create({
+    data: {
+      name: "Accounts Payable",
+      number: "2000000000",
+      description: "Amount owed to suppliers",
+      initialBalance: 0,
+      userId: admin.id,
+      orderId: accountsPayableOrder.id,
+      comment: "Main liability account",
+      isActive: true,
+      categoryId: currentLiabilityCategory.id,
+      subcategoryId: accountsPayableSubcategory.id,
+      statementId: liabilityStatement.id,
+      normalSide: "Credit",
+      totalDebits: 0.0,
+      totalCredits: 0.0,
+      balance: 0.0,
+    },
+  });
+
+  const equityAccount = await prisma.account.create({
+    data: {
+      name: "Owner's Capital",
+      number: "3000000000",
+      description: "Owner's equity account",
+      initialBalance: 0,
+      userId: admin.id,
+      orderId: ownersEquityOrder.id,
+      comment: "Owner's equity investment",
+      isActive: true,
+      categoryId: ownersEquityCategory.id,
+      subcategoryId: ownersCapitalSubcategory.id,
+      statementId: equityStatement.id,
+      normalSide: "Credit",
+      totalDebits: 0.0,
+      totalCredits: 0.0,
+      balance: 0.0,
+    },
+  });
+
+  const expenseAccount = await prisma.account.create({
+    data: {
+      name: "Utilities Expense",
+      number: "5000000000",
+      description: "Monthly utility expenses",
+      initialBalance: 0,
+      userId: admin.id,
+      orderId: rentExpensesOrder.id,
+      comment: "Operating expense",
+      isActive: true,
+      categoryId: operatingExpenseCategory.id,
+      subcategoryId: utilitiesSubcategory.id,
+      statementId: expenseStatement.id,
+      normalSide: "Debit",
+      totalDebits: 0.0,
+      totalCredits: 0.0,
+      balance: 0.0,
+    },
+  });
+
+  console.log("Liability, Equity, and Expense accounts seeded successfully");
+
+  const capitalEntry = await prisma.journalEntry.create({
+    data: {
+      pr: `PR-1000000000`,
+      description: "Owner's Capital Contribution",
+      status: "APPROVED",
+      userId: admin.id,
+      date: new Date(2022, 0, 10),
+    },
+  });
+
+  await prisma.$transaction([
+    prisma.transaction.create({
+      data: {
+        date: new Date(2022, 0, 10),
+        description: "Owner's Capital Contribution",
+        amount: 1000.0,
+        accountId: cashAccount.id,
+        userId: admin.id,
+        journalEntryId: capitalEntry.id,
+        balance: 1000.0,
+        type: "DEBIT",
+        isApproved: true,
+      },
+    }),
+    prisma.transaction.create({
+      data: {
+        date: new Date(2022, 0, 10),
+        description: "Owner's Capital Contribution",
+        amount: 1000.0,
+        accountId: equityAccount.id,
+        userId: admin.id,
+        journalEntryId: capitalEntry.id,
+        balance: 1000.0,
+        type: "CREDIT",
+        isApproved: true,
+      },
+    }),
+    prisma.account.update({
+      where: { id: cashAccount.id },
+      data: {
+        totalDebits: { increment: 1000 },
+        balance: { increment: 1000 },
+      },
+    }),
+    prisma.account.update({
+      where: { id: equityAccount.id },
+      data: {
+        totalCredits: { increment: 1000 },
+        balance: { increment: 1000 },
+      },
+    }),
+  ]);
+
+  await prisma.$transaction([
+    prisma.eventLog.create({
+      data: {
+        eventType: "CREATE",
+        tableName: "JournalEntry",
+        recordId: capitalEntry.id,
+        beforeState: Prisma.JsonNull,
+        afterState: capitalEntry,
+        userId: admin.id,
+      },
+    }),
+    prisma.eventLog.create({
+      data: {
+        eventType: "UPDATE",
+        tableName: "Account",
+        recordId: cashAccount.id,
+        beforeState: { ...cashAccount, balance: 0 },
+        afterState: { ...cashAccount, totalDebits: 1000, balance: 1000 },
+        userId: admin.id,
+      },
+    }),
+    prisma.eventLog.create({
+      data: {
+        eventType: "UPDATE",
+        tableName: "Account",
+        recordId: equityAccount.id,
+        beforeState: { ...equityAccount, balance: 0 },
+        afterState: { ...equityAccount, totalCredits: 1000, balance: 1000 },
+        userId: admin.id,
+      },
+    }),
+  ]);
+
   const journalEntry = await prisma.journalEntry.create({
     data: {
-      pr: `PR-${Date.now()}`,
+      pr: `PR-1000000050`,
       description: "Initial service revenue recording",
       status: "APPROVED",
       userId: admin.id,
@@ -472,12 +602,11 @@ async function main() {
         accountId: cashAccount.id,
         userId: admin.id,
         journalEntryId: journalEntry.id,
-        balance: 500.0, // debit increases asset acocunts, while credit decreases it
+        balance: 1500.0, // previously 1000
         type: "DEBIT",
         isApproved: true,
       },
     }),
-
     prisma.transaction.create({
       data: {
         date: new Date(2022, 0, 15),
@@ -507,19 +636,7 @@ async function main() {
     }),
   ]);
 
-  // create events for the transactions
-  await prisma.eventLog.create({
-    data: {
-      eventType: "CREATE",
-      tableName: "Transaction",
-      recordId: cashAccount.id,
-      beforeState: Prisma.JsonNull,
-      afterState: cashAccount,
-      userId: admin.id,
-    },
-  });
   await prisma.$transaction([
-    // Journal Entry creation event
     prisma.eventLog.create({
       data: {
         eventType: "CREATE",
@@ -530,15 +647,13 @@ async function main() {
         userId: admin.id,
       },
     }),
-
-    // Account update events (after transactions)
     prisma.eventLog.create({
       data: {
         eventType: "UPDATE",
         tableName: "Account",
         recordId: cashAccount.id,
-        beforeState: { ...cashAccount, balance: 0 }, // Initial state
-        afterState: { ...cashAccount, totalDebits: 500, balance: 500 },
+        beforeState: { ...cashAccount, balance: 1000 },
+        afterState: { ...cashAccount, totalDebits: 1500, balance: 1500 },
         userId: admin.id,
       },
     }),
@@ -547,14 +662,158 @@ async function main() {
         eventType: "UPDATE",
         tableName: "Account",
         recordId: revenueAccount.id,
-        beforeState: { ...revenueAccount, balance: 0 }, // Initial state
+        beforeState: { ...revenueAccount, balance: 0 },
         afterState: { ...revenueAccount, totalCredits: 500, balance: 500 },
         userId: admin.id,
       },
     }),
   ]);
 
-  console.log("Transactions and Events seeded successfully");
+  const utilitiesEntry = await prisma.journalEntry.create({
+    data: {
+      pr: `PR-1000000100`,
+      description: "Paid monthly utility bill",
+      status: "APPROVED",
+      userId: admin.id,
+      date: new Date(2022, 0, 20),
+    },
+  });
+
+  await prisma.$transaction([
+    prisma.transaction.create({
+      data: {
+        date: new Date(2022, 0, 20),
+        description: "Paid utilities",
+        amount: 200.0,
+        accountId: expenseAccount.id,
+        userId: admin.id,
+        journalEntryId: utilitiesEntry.id,
+        balance: 200.0,
+        type: "DEBIT",
+        isApproved: true,
+      },
+    }),
+    prisma.transaction.create({
+      data: {
+        date: new Date(2022, 0, 20),
+        description: "Paid utilities",
+        amount: 200.0,
+        accountId: cashAccount.id,
+        userId: admin.id,
+        journalEntryId: utilitiesEntry.id,
+        balance: 1300.0,
+        type: "CREDIT",
+        isApproved: true,
+      },
+    }),
+    prisma.account.update({
+      where: { id: expenseAccount.id },
+      data: {
+        totalDebits: { increment: 200 },
+        balance: { increment: 200 },
+      },
+    }),
+    prisma.account.update({
+      where: { id: cashAccount.id },
+      data: {
+        totalCredits: { increment: 200 },
+        balance: { decrement: 200 },
+      },
+    }),
+  ]);
+
+  // =============================================
+  // ADJUSTING JOURNAL ENTRIES
+  // =============================================
+
+  await prisma.$transaction([
+    prisma.eventLog.create({
+      data: {
+        eventType: "CREATE",
+        tableName: "JournalEntry",
+        recordId: utilitiesEntry.id,
+        beforeState: Prisma.JsonNull,
+        afterState: utilitiesEntry,
+        userId: admin.id,
+      },
+    }),
+    prisma.eventLog.create({
+      data: {
+        eventType: "UPDATE",
+        tableName: "Account",
+        recordId: expenseAccount.id,
+        beforeState: { ...expenseAccount, balance: 0 },
+        afterState: { ...expenseAccount, totalDebits: 200, balance: 200 },
+        userId: admin.id,
+      },
+    }),
+    prisma.eventLog.create({
+      data: {
+        eventType: "UPDATE",
+        tableName: "Account",
+        recordId: cashAccount.id,
+        beforeState: { ...cashAccount, balance: 1500 },
+        afterState: { ...cashAccount, totalCredits: 200, balance: 1300 },
+        userId: admin.id,
+      },
+    }),
+  ]);
+
+  const payableEntry = await prisma.journalEntry.create({
+    data: {
+      pr: `PR-1000000200`,
+      description: "Record purchase on account",
+      status: "APPROVED",
+      userId: admin.id,
+      date: new Date(2022, 0, 25),
+    },
+  });
+
+  await prisma.$transaction([
+    prisma.transaction.create({
+      data: {
+        date: new Date(2022, 0, 25),
+        description: "Purchase on account",
+        amount: 200.0,
+        accountId: payableAccount.id,
+        userId: admin.id,
+        journalEntryId: payableEntry.id,
+        balance: 200.0,
+        type: "CREDIT",
+        isApproved: true,
+      },
+    }),
+    prisma.account.update({
+      where: { id: payableAccount.id },
+      data: {
+        totalCredits: { increment: 200 },
+        balance: { increment: 200 },
+      },
+    }),
+  ]);
+
+  await prisma.$transaction([
+    prisma.eventLog.create({
+      data: {
+        eventType: "CREATE",
+        tableName: "JournalEntry",
+        recordId: payableEntry.id,
+        beforeState: Prisma.JsonNull,
+        afterState: payableEntry,
+        userId: admin.id,
+      },
+    }),
+    prisma.eventLog.create({
+      data: {
+        eventType: "UPDATE",
+        tableName: "Account",
+        recordId: payableAccount.id,
+        beforeState: { ...payableAccount, balance: 200 },
+        afterState: { ...payableAccount, totalCredits: 200, balance: 200 },
+        userId: admin.id,
+      },
+    }),
+  ]);
 }
 
 main()
