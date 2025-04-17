@@ -1,4 +1,6 @@
 // lib/account-utils.ts
+import { BalanceSheet } from "@/components/balance-sheet-columns";
+import { IncomeStatement } from "@/components/income-statement-columns";
 import prisma from "@/lib/prisma";
 
 export type AccountCategory =
@@ -66,3 +68,65 @@ export const generatePrNumber = async () => {
 
   return `PR-${nextNumber}`;
 };
+
+export function transformBalanceSheet(apiData: any): BalanceSheet[] {
+  return apiData.balanceSheet.flatMap((section: any) => {
+    const accounts = section.accounts.map((account: any) => ({
+      name: account.name,
+      balance: account.balance,
+      category: account.category,
+      subcategory: account.subcategory,
+      description: account.description,
+      statementType: section.statementType,
+    }));
+
+    const totalRow: BalanceSheet = {
+      name: `Total ${section.statementType}`,
+      balance: section.totalBalance,
+      category: "",
+      subcategory: "",
+      description: "",
+      statementType: section.statementType,
+    };
+
+    return [...accounts, totalRow];
+  });
+}
+
+export function transformIncomeStatement(apiData: any): IncomeStatement[] {
+  const revenues = apiData.revenues.map((item: any) => ({
+    name: item.names || item.name, // Handle the typo in the API ('names' vs 'name')
+    balance: item.balance,
+    type: "revenue",
+    category: item.category,
+  }));
+
+  const expenses = apiData.expenses
+    .filter((item: any) => item.name !== undefined) // Filter out the netIncome if it's in the array
+    .map((item: any) => ({
+      name: item.name,
+      balance: item.balance,
+      type: "expense",
+      category: item.category,
+    }));
+
+  const totalRevenue = {
+    name: "Total Revenue",
+    balance: apiData.totalRevenue,
+    type: "total",
+  };
+
+  const totalExpenses = {
+    name: "Total Expenses",
+    balance: apiData.totalExpenses,
+    type: "total",
+  };
+
+  const netIncome = {
+    name: "Net Income",
+    balance: apiData.netIncome,
+    type: "net",
+  };
+
+  return [...revenues, totalRevenue, ...expenses, totalExpenses, netIncome];
+}
