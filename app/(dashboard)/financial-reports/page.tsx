@@ -18,6 +18,8 @@ import {
   transformBalanceSheet,
   transformIncomeStatement,
 } from "@/lib/account-utils";
+import html2pdf from "html2pdf.js";
+import { date } from "zod";
 
 const FinancialReportsPage = () => {
   const [selectedReport, setSelectedReport] = useState("trial-balance");
@@ -36,13 +38,6 @@ const FinancialReportsPage = () => {
   const [isDateRange, setIsDateRange] = useState(false);
   const [globalFilter, setGlobalFilter] = useState("");
   const [error, setError] = useState(null);
-
-  const tableComponents = {
-    "trial-balance": TrialBalanceTable,
-    "income-statement": IncomeStatementTable,
-    "balance-sheet": BalanceSheetTable,
-    "retained-earnings": RetainedEarningsTable,
-  };
 
   const reports = [
     { id: "trial-balance", name: "Trial Balance", icon: "⚖️" },
@@ -64,6 +59,8 @@ const FinancialReportsPage = () => {
         startDate: dateRange.start,
         endDate: isDateRange ? dateRange.end : dateRange.start,
       };
+
+      console.log(dateRange);
 
       // Set the endpoint based on selected report
       switch (selectedReport) {
@@ -114,9 +111,9 @@ const FinancialReportsPage = () => {
     }
   };
 
-  const handleExport = () => {
-    console.log("Exporting report...");
-    // Implement export logic
+  const onDownload = () => {
+    const element = document.querySelector("#report-preview");
+    html2pdf(element);
   };
 
   const handleEmail = () => {
@@ -125,8 +122,7 @@ const FinancialReportsPage = () => {
   };
 
   const handlePrint = () => {
-    console.log("Printing report...");
-    // Implement print logic
+    window.print();
   };
 
   return (
@@ -228,7 +224,10 @@ const FinancialReportsPage = () => {
         </div>
 
         {/* Report Preview Section */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div
+          id="report-preview"
+          className="bg-white p-6 rounded-xl shadow-sm border border-gray-200"
+        >
           {error ? (
             <p className="text-center">{error}</p>
           ) : selectedReport === "trial-balance" ? (
@@ -237,7 +236,7 @@ const FinancialReportsPage = () => {
               columns={trialBalanceColumns}
               globalFilter={globalFilter}
               onGlobalFilterChange={setGlobalFilter}
-              onExport={handleExport}
+              onExport={onDownload}
               onEmail={handleEmail}
               onPrint={handlePrint}
             />
@@ -247,7 +246,7 @@ const FinancialReportsPage = () => {
               columns={incomeStatementColumns}
               globalFilter={globalFilter}
               onGlobalFilterChange={setGlobalFilter}
-              onExport={handleExport}
+              onExport={onDownload}
               onEmail={handleEmail}
               onPrint={handlePrint}
             />
@@ -257,7 +256,7 @@ const FinancialReportsPage = () => {
               columns={balanceSheetColumns}
               globalFilter={globalFilter}
               onGlobalFilterChange={setGlobalFilter}
-              onExport={handleExport}
+              onExport={onDownload}
               onEmail={handleEmail}
               onPrint={handlePrint}
             />
@@ -267,7 +266,7 @@ const FinancialReportsPage = () => {
               columns={retainedEarningsColumns}
               globalFilter={globalFilter}
               onGlobalFilterChange={setGlobalFilter}
-              onExport={handleExport}
+              onExport={onDownload}
               onEmail={handleEmail}
               onPrint={handlePrint}
             />

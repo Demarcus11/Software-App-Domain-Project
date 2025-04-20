@@ -130,3 +130,12 @@ export function transformIncomeStatement(apiData: any): IncomeStatement[] {
 
   return [...revenues, totalRevenue, ...expenses, totalExpenses, netIncome];
 }
+
+export function getRatioStatusColor(
+  value: number | null
+): "green" | "yellow" | "red" | undefined {
+  if (value === null) return;
+  if (value >= 2.0) return "green";
+  else if (value >= 1.0) return "yellow";
+  else return "red";
+}

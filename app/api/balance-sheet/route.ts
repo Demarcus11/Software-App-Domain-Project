@@ -2,8 +2,23 @@ import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
+  const isValidDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return !isNaN(d.getTime());
+  };
+
   try {
     const { startDate, endDate } = await req.json();
+
+    const dateFilter =
+      isValidDate(startDate) && isValidDate(endDate)
+        ? {
+            date: {
+              gte: new Date(startDate),
+              lte: new Date(endDate),
+            },
+          }
+        : {}; // don't apply filter if dates are invalid
 
     const statements = await prisma.statement.findMany({
       where: {
@@ -23,12 +38,7 @@ export async function POST(req: Request) {
             subcategory: { select: { name: true } },
             order: { select: { name: true } },
             transactions: {
-              where: {
-                date: {
-                  gte: new Date(startDate),
-                  lte: new Date(endDate),
-                },
-              },
+              where: dateFilter,
               select: {
                 type: true,
                 amount: true,
@@ -103,7 +113,6 @@ export async function POST(req: Request) {
       { status: 200 }
     );
   } catch (error) {
-    console.error(error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

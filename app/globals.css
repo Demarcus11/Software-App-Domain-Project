@@ -81,6 +81,12 @@ body {
 }
 
 @layer base {
+  img {
+    display: initial;
+  }
+}
+
+@layer base {
   * {
     @apply border-border;
   }
@@ -89,13 +95,29 @@ body {
   }
 }
 
-
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #report-preview,
+  #report-preview * {
+    visibility: visible;
+  }
+
+  #report-preview {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
   }
 }
