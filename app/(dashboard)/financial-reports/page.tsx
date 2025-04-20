@@ -18,7 +18,6 @@ import {
   transformBalanceSheet,
   transformIncomeStatement,
 } from "@/lib/account-utils";
-import html2pdf from "html2pdf.js";
 import { date } from "zod";
 
 const FinancialReportsPage = () => {
@@ -113,7 +112,6 @@ const FinancialReportsPage = () => {
 
   const onDownload = () => {
     const element = document.querySelector("#report-preview");
-    html2pdf(element);
   };
 
   const handleEmail = () => {
