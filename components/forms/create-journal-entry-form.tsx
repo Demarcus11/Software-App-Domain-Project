@@ -55,6 +55,7 @@ const formSchema = z.object({
         .reduce((sum, t) => sum + t.amount, 0);
       return debitTotal === creditTotal;
     }, "Debits must equal credits"),
+  document: z.instanceof(File).optional(),
 });
 
 export default function JournalEntryForm() {
@@ -71,6 +72,7 @@ export default function JournalEntryForm() {
         { accountId: "", type: "DEBIT", amount: 0, description: "" },
         { accountId: "", type: "CREDIT", amount: 0, description: "" },
       ],
+      document: undefined,
     },
   });
 
@@ -116,18 +118,47 @@ export default function JournalEntryForm() {
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
+      let documentUrl = null;
+
+      if (data.document) {
+        // Upload the document to Cloudinary
+        const formData = new FormData();
+        formData.append("file", data.document);
+        formData.append("upload_preset", "next_cloudinary_app");
+
+        const cloudinaryResponse = await fetch(
+          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/raw/upload`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        if (!cloudinaryResponse.ok) {
+          const error = await cloudinaryResponse.json();
+          console.error("Cloudinary Error:", error);
+          throw new Error("Failed to upload document");
+        }
+
+        const cloudinaryData = await cloudinaryResponse.json();
+        documentUrl = cloudinaryData.secure_url;
+      }
+
+      const updatedData = {
+        ...data,
+        userId,
+        date: data.date.toISOString(),
+        transactions: data.transactions.map((t) => ({
+          ...t,
+          amount: Number(t.amount),
+        })),
+        documentUrl,
+      };
+
       const response = await fetch("/api/journal-entries/new", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...data,
-          userId,
-          date: data.date.toISOString(),
-          transactions: data.transactions.map((t) => ({
-            ...t,
-            amount: Number(t.amount),
-          })),
-        }),
+        body: JSON.stringify(updatedData),
       });
 
       if (!response.ok) {
@@ -195,6 +226,28 @@ export default function JournalEntryForm() {
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="document"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Document</FormLabel>
+                <FormControl>
+                  <Input
+                    type="file"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        field.onChange(file);
+                      }
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />

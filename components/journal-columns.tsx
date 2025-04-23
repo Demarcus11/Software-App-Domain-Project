@@ -217,6 +217,26 @@ export const useColumns = () => {
       header: "User Id",
     },
     {
+      accessorKey: "document",
+      header: "Document",
+      cell: ({ row }) => {
+        const document = row.original.document;
+
+        return document ? (
+          <a
+            href={document}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 underline"
+          >
+            View
+          </a>
+        ) : (
+          <span className="text-gray-400 italic">No document</span>
+        );
+      },
+    },
+    {
       id: "actions",
       header: "Actions",
       cell: ({ row }) => {

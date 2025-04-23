@@ -209,6 +209,7 @@ model JournalEntry {
   updatedAt   DateTime      @updatedAt
   pr          String        @unique // Post Reference number
   isAdjusting Boolean       @default(false)
+  document    String?
 
 
   user        User          @relation(fields: [userId], references: [id])

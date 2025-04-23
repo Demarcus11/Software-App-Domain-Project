@@ -15,6 +15,7 @@ export interface ExtendedJournalEntry {
     id: number;
     username: string;
   };
+  document: string;
   transactions: {
     id: string;
     amount: number;

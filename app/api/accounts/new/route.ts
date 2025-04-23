@@ -76,14 +76,10 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log(category.name);
-
     // Generate the account number
     const accountNumber = await generateAccountNumber(
       category.name as AccountCategory
     );
-
-    console.log(accountNumber);
 
     // Create the new account with the initial balance
     const newAccount = await prisma.account.create({

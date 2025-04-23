@@ -10,7 +10,10 @@ export async function POST(request: Request) {
       transactions,
       userId,
       isAdjusting = false,
+      documentUrl,
     } = await request.json();
+
+    console.log(documentUrl);
 
     // 1. Validate required fields
     if (!description || !transactions || !userId) {
@@ -89,6 +92,7 @@ export async function POST(request: Request) {
           status: "PENDING",
           userId: Number(userId),
           isAdjusting: Boolean(isAdjusting),
+          document: documentUrl,
         },
       });
 
