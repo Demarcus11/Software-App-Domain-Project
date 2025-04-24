@@ -118,42 +118,37 @@ export async function POST(req: Request) {
 
     // Process each account and populate the balance sheet structure
     for (const account of accounts) {
-      // Calculate account balance from transactions
-      const balance = account.transactions.reduce((sum, tx) => {
-        const categoryName =
-          categories.find((c) => c.id === account.subcategory.categoryId)
-            ?.name || "Unknown";
-        const isAsset = categoryName.includes("Asset");
-        const isLiability = categoryName.includes("Liability");
+      const categoryName =
+        categories.find((c) => c.id === account.subcategory.categoryId)?.name ||
+        "Unknown";
 
-        const isIncrease =
-          (isAsset && tx.type === "DEBIT") ||
-          ((isLiability || categoryName === "Owner's Equity") &&
-            tx.type === "CREDIT");
+      // Calculate account balance based on account type
+      let balance = 0;
 
-        const isDecrease =
-          (isAsset && tx.type === "CREDIT") ||
-          ((isLiability || categoryName === "Owner's Equity") &&
-            tx.type === "DEBIT");
-
-        if (isIncrease) return sum + tx.amount;
-        if (isDecrease) return sum - tx.amount;
-        return sum;
-      }, 0);
+      if (categoryName.includes("Asset")) {
+        // Assets increase with debits, decrease with credits
+        balance = account.transactions.reduce((sum, tx) => {
+          return tx.type === "DEBIT" ? sum + tx.amount : sum - tx.amount;
+        }, 0);
+      } else if (
+        categoryName.includes("Liability") ||
+        categoryName === "Owner's Equity"
+      ) {
+        // Liabilities and Equity increase with credits, decrease with debits
+        balance = account.transactions.reduce((sum, tx) => {
+          return tx.type === "CREDIT" ? sum + tx.amount : sum - tx.amount;
+        }, 0);
+      }
 
       const accountData = {
         id: account.id,
         name: account.name,
         number: account.number,
-        balance: Math.abs(balance),
+        balance: balance, // Don't use Math.abs() here
         normalSide: account.normalSide,
         order: account.order.name,
         subcategory: account.subcategory.name,
       };
-
-      const categoryName =
-        categories.find((c) => c.id === account.subcategory.categoryId)?.name ||
-        "Unknown";
 
       // Categorize the account
       if (categoryName === "Current Asset") {
