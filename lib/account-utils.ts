@@ -69,28 +69,211 @@ export const generatePrNumber = async () => {
   return `PR-${nextNumber}`;
 };
 
-export function transformBalanceSheet(apiData: any): BalanceSheet[] {
-  return apiData.balanceSheet.flatMap((section: any) => {
-    const accounts = section.accounts.map((account: any) => ({
-      name: account.name,
-      balance: account.balance,
-      category: account.category,
-      subcategory: account.subcategory,
-      description: account.description,
-      statementType: section.statementType,
-    }));
+// Add this to your page.tsx or create a separate utility file
+export function transformBalanceSheet(data: any): BalanceSheet[] {
+  if (!data) return [];
 
-    const totalRow: BalanceSheet = {
-      name: `Total ${section.statementType}`,
-      balance: section.totalBalance,
-      category: "",
-      subcategory: "",
-      description: "",
-      statementType: section.statementType,
-    };
+  const result: BalanceSheet[] = [];
 
-    return [...accounts, totalRow];
+  // Assets Section
+  result.push({
+    name: "ASSETS",
+    balance: 0,
+    statementType: "Asset",
+    isSectionHeader: true,
+    showAmount: false, // New property to control amount display
   });
+
+  // Current Assets
+  result.push({
+    name: "Current Assets",
+    balance: data.assets.currentAssets.total,
+    statementType: "Asset",
+    isSectionHeader: true,
+    showAmount: false,
+  });
+
+  data.assets.currentAssets.accounts.forEach((account: any) => {
+    result.push({
+      id: account.id,
+      name: account.name,
+      number: account.number,
+      balance: account.balance,
+      normalSide: account.normalSide,
+      order: account.order,
+      subcategory: account.subcategory,
+      statementType: "Asset",
+      showAmount: true,
+    });
+  });
+
+  result.push({
+    name: "Total Current Assets",
+    balance: data.assets.currentAssets.total,
+    statementType: "Asset",
+    isTotal: true,
+    showAmount: true,
+  });
+
+  // Non-Current Assets
+  result.push({
+    name: "Non-Current Assets",
+    balance: data.assets.nonCurrentAssets.total,
+    statementType: "Asset",
+    isSectionHeader: true,
+    showAmount: false,
+  });
+
+  data.assets.nonCurrentAssets.accounts.forEach((account: any) => {
+    result.push({
+      id: account.id,
+      name: account.name,
+      number: account.number,
+      balance: account.balance,
+      normalSide: account.normalSide,
+      order: account.order,
+      subcategory: account.subcategory,
+      statementType: "Asset",
+      showAmount: true,
+    });
+  });
+
+  result.push({
+    name: "Total Non-Current Assets",
+    balance: data.assets.nonCurrentAssets.total,
+    statementType: "Asset",
+    isTotal: true,
+    showAmount: true,
+  });
+
+  result.push({
+    name: "TOTAL ASSETS",
+    balance: data.assets.total,
+    statementType: "Asset",
+    isTotal: true,
+    showAmount: true,
+  });
+
+  // Liabilities Section
+  result.push({
+    name: "LIABILITIES",
+    balance: 0,
+    statementType: "Liability",
+    isSectionHeader: true,
+    showAmount: false,
+  });
+
+  // Current Liabilities
+  result.push({
+    name: "Current Liabilities",
+    balance: data.liabilities.currentLiabilities.total,
+    statementType: "Liability",
+    isSectionHeader: true,
+    showAmount: false,
+  });
+
+  data.liabilities.currentLiabilities.accounts.forEach((account: any) => {
+    result.push({
+      id: account.id,
+      name: account.name,
+      number: account.number,
+      balance: account.balance,
+      normalSide: account.normalSide,
+      order: account.order,
+      subcategory: account.subcategory,
+      statementType: "Liability",
+      showAmount: true,
+    });
+  });
+
+  result.push({
+    name: "Total Current Liabilities",
+    balance: data.liabilities.currentLiabilities.total,
+    statementType: "Liability",
+    isTotal: true,
+    showAmount: true,
+  });
+
+  // Non-Current Liabilities
+  result.push({
+    name: "Non-Current Liabilities",
+    balance: data.liabilities.nonCurrentLiabilities.total,
+    statementType: "Liability",
+    isSectionHeader: true,
+    showAmount: false,
+  });
+
+  data.liabilities.nonCurrentLiabilities.accounts.forEach((account: any) => {
+    result.push({
+      id: account.id,
+      name: account.name,
+      number: account.number,
+      balance: account.balance,
+      normalSide: account.normalSide,
+      order: account.order,
+      subcategory: account.subcategory,
+      statementType: "Liability",
+      showAmount: true,
+    });
+  });
+
+  result.push({
+    name: "Total Non-Current Liabilities",
+    balance: data.liabilities.nonCurrentLiabilities.total,
+    statementType: "Liability",
+    isTotal: true,
+    showAmount: true,
+  });
+
+  result.push({
+    name: "TOTAL LIABILITIES",
+    balance: data.liabilities.total,
+    statementType: "Liability",
+    isTotal: true,
+    showAmount: true,
+  });
+
+  // Equity Section
+  result.push({
+    name: "EQUITY",
+    balance: 0,
+    statementType: "Equity",
+    isSectionHeader: true,
+    showAmount: false,
+  });
+
+  data.equity.accounts.forEach((account: any) => {
+    result.push({
+      id: account.id,
+      name: account.name,
+      number: account.number,
+      balance: account.balance,
+      normalSide: account.normalSide,
+      order: account.order,
+      subcategory: account.subcategory,
+      statementType: "Equity",
+      showAmount: true,
+    });
+  });
+
+  result.push({
+    name: "TOTAL EQUITY",
+    balance: data.equity.total,
+    statementType: "Equity",
+    isTotal: true,
+    showAmount: true,
+  });
+
+  // Grand Total
+  result.push({
+    name: "TOTAL LIABILITIES AND EQUITY",
+    balance: data.liabilities.total + data.equity.total,
+    statementType: "Equity",
+    isTotal: true,
+    showAmount: true,
+  });
+
+  return result;
 }
 
 export function transformIncomeStatement(apiData: any): IncomeStatement[] {

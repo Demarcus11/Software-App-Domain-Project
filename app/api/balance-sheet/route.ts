@@ -20,99 +20,189 @@ export async function POST(req: Request) {
           }
         : {}; // don't apply filter if dates are invalid
 
-    const statements = await prisma.statement.findMany({
+    // First get all the categories we need
+    const categories = await prisma.category.findMany({
       where: {
         name: {
-          in: ["Asset", "Liability", "Equity"],
+          in: [
+            "Current Asset",
+            "Non-Current Asset",
+            "Current Liability",
+            "Non-Current Liability",
+            "Owner's Equity",
+          ],
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    // Then get all subcategories for these categories
+    const subcategories = await prisma.subcategory.findMany({
+      where: {
+        categoryId: {
+          in: categories.map((c) => c.id),
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        categoryId: true,
+      },
+    });
+
+    // Now get all accounts with their transactions
+    const accounts = await prisma.account.findMany({
+      where: {
+        subcategoryId: {
+          in: subcategories.map((s) => s.id),
         },
       },
       include: {
-        accounts: {
+        transactions: {
+          where: dateFilter,
           select: {
-            id: true,
-            name: true,
-            number: true,
-            description: true,
-            normalSide: true,
-            category: { select: { name: true } },
-            subcategory: { select: { name: true } },
-            order: { select: { name: true } },
-            transactions: {
-              where: dateFilter,
-              select: {
-                type: true,
-                amount: true,
-              },
-            },
+            type: true,
+            amount: true,
           },
-          orderBy: {
-            orderId: "asc",
+        },
+        order: {
+          select: {
+            name: true,
+          },
+        },
+        subcategory: {
+          select: {
+            name: true,
+            categoryId: true, // Include categoryId instead of category
           },
         },
       },
+      orderBy: {
+        orderId: "asc",
+      },
     });
 
-    let totals = {
-      Asset: 0,
-      Liability: 0,
-      Equity: 0,
+    // Organize data into the required structure
+    const balanceSheet = {
+      assets: {
+        currentAssets: {
+          accounts: [] as any[],
+          total: 0,
+        },
+        nonCurrentAssets: {
+          accounts: [] as any[],
+          total: 0,
+        },
+        total: 0,
+      },
+      liabilities: {
+        currentLiabilities: {
+          accounts: [] as any[],
+          total: 0,
+        },
+        nonCurrentLiabilities: {
+          accounts: [] as any[],
+          total: 0,
+        },
+        total: 0,
+      },
+      equity: {
+        accounts: [] as any[],
+        total: 0,
+      },
+      grandTotal: 0,
     };
 
-    const balanceSheet = statements.map((statement) => {
-      const accounts = statement.accounts.map((account) => {
-        const balance = account.transactions.reduce((sum, tx) => {
-          const isIncrease =
-            (statement.name === "Asset" && tx.type === "DEBIT") ||
-            ((statement.name === "Liability" || statement.name === "Equity") &&
-              tx.type === "CREDIT");
+    // Process each account and populate the balance sheet structure
+    for (const account of accounts) {
+      // Calculate account balance from transactions
+      const balance = account.transactions.reduce((sum, tx) => {
+        const categoryName =
+          categories.find((c) => c.id === account.subcategory.categoryId)
+            ?.name || "Unknown";
+        const isAsset = categoryName.includes("Asset");
+        const isLiability = categoryName.includes("Liability");
 
-          const isDecrease =
-            (statement.name === "Asset" && tx.type === "CREDIT") ||
-            ((statement.name === "Liability" || statement.name === "Equity") &&
-              tx.type === "DEBIT");
+        const isIncrease =
+          (isAsset && tx.type === "DEBIT") ||
+          ((isLiability || categoryName === "Owner's Equity") &&
+            tx.type === "CREDIT");
 
-          if (isIncrease) return sum + tx.amount;
-          if (isDecrease) return sum - tx.amount;
+        const isDecrease =
+          (isAsset && tx.type === "CREDIT") ||
+          ((isLiability || categoryName === "Owner's Equity") &&
+            tx.type === "DEBIT");
 
-          return sum;
-        }, 0);
+        if (isIncrease) return sum + tx.amount;
+        if (isDecrease) return sum - tx.amount;
+        return sum;
+      }, 0);
 
-        return {
-          id: account.id,
-          name: account.name,
-          number: account.number,
-          description: account.description,
-          balance,
-          normalSide: account.normalSide,
-          category: account.category.name,
-          subcategory: account.subcategory.name,
-          order: account.order.name,
-        };
-      });
-
-      const totalBalance = accounts.reduce((sum, acc) => sum + acc.balance, 0);
-      totals[statement.name as "Asset" | "Liability" | "Equity"] = totalBalance;
-
-      return {
-        statementType: statement.name,
-        totalBalance,
-        accounts,
+      const accountData = {
+        id: account.id,
+        name: account.name,
+        number: account.number,
+        balance: Math.abs(balance),
+        normalSide: account.normalSide,
+        order: account.order.name,
+        subcategory: account.subcategory.name,
       };
-    });
 
-    const allEmpty = Object.values(totals).every((total) => total === 0);
+      const categoryName =
+        categories.find((c) => c.id === account.subcategory.categoryId)?.name ||
+        "Unknown";
+
+      // Categorize the account
+      if (categoryName === "Current Asset") {
+        balanceSheet.assets.currentAssets.accounts.push(accountData);
+        balanceSheet.assets.currentAssets.total += balance;
+      } else if (categoryName === "Non-Current Asset") {
+        balanceSheet.assets.nonCurrentAssets.accounts.push(accountData);
+        balanceSheet.assets.nonCurrentAssets.total += balance;
+      } else if (categoryName === "Current Liability") {
+        balanceSheet.liabilities.currentLiabilities.accounts.push(accountData);
+        balanceSheet.liabilities.currentLiabilities.total += balance;
+      } else if (categoryName === "Non-Current Liability") {
+        balanceSheet.liabilities.nonCurrentLiabilities.accounts.push(
+          accountData
+        );
+        balanceSheet.liabilities.nonCurrentLiabilities.total += balance;
+      } else if (categoryName === "Owner's Equity") {
+        balanceSheet.equity.accounts.push(accountData);
+        balanceSheet.equity.total += balance;
+      }
+    }
+
+    // Calculate totals
+    balanceSheet.assets.total =
+      balanceSheet.assets.currentAssets.total +
+      balanceSheet.assets.nonCurrentAssets.total;
+
+    balanceSheet.liabilities.total =
+      balanceSheet.liabilities.currentLiabilities.total +
+      balanceSheet.liabilities.nonCurrentLiabilities.total;
+
+    balanceSheet.grandTotal =
+      balanceSheet.assets.total -
+      (balanceSheet.liabilities.total + balanceSheet.equity.total);
+
+    // Check if all balances are zero
+    const allEmpty = [
+      balanceSheet.assets.total,
+      balanceSheet.liabilities.total,
+      balanceSheet.equity.total,
+    ].every((total) => total === 0);
 
     if (allEmpty) {
       return NextResponse.json({ message: "No results" }, { status: 404 });
     }
 
-    const grandTotal = totals.Asset - (totals.Liability + totals.Equity);
-
-    return NextResponse.json(
-      { balanceSheet, totals, grandTotal },
-      { status: 200 }
-    );
+    return NextResponse.json(balanceSheet, { status: 200 });
   } catch (error) {
+    console.error("Error generating balance sheet:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
