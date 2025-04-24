@@ -14,6 +14,8 @@ import { TrialBalance } from "@/components/trial-balance-columns";
 import { BalanceSheet } from "@/components/balance-sheet-columns";
 import { RetainedEarnings } from "@/components/retained-earnings-columns";
 import { IncomeStatement } from "@/components/income-statement-columns";
+import Image from "next/image";
+import logo from "@/public/logo.png";
 import {
   transformBalanceSheet,
   transformIncomeStatement,
@@ -226,6 +228,15 @@ const FinancialReportsPage = () => {
           id="report-preview"
           className="bg-white p-6 rounded-xl shadow-sm border border-gray-200"
         >
+          <div className="mb-5 grid gap-2">
+            <div className="flex gap-2 items-center">
+              <Image src={logo} alt="AccuBooks" width={50} />
+              <p className="text-lg font-bold text-center text-purple-500">
+                AccBooks
+              </p>
+            </div>
+            <p>For the period ending {dateRange.end}</p>
+          </div>
           {error ? (
             <p className="text-center">{error}</p>
           ) : selectedReport === "trial-balance" ? (

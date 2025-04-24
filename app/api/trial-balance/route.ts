@@ -66,18 +66,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "No results" }, { status: 404 });
     }
 
-    // Calculate debits and credits for each account
     const trialBalanceData = accounts.map((account) => {
-      let debit = 0;
-      let credit = 0;
-
-      account.transactions.forEach((transaction) => {
-        if (transaction.type === "DEBIT") {
-          debit += transaction.amount;
-        } else {
-          credit += transaction.amount;
-        }
-      });
+      const debit = account.totalDebits ?? 0;
+      const credit = account.totalCredits ?? 0;
 
       return {
         account: `${account.number} - ${account.name}`,
