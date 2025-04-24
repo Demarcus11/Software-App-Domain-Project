@@ -128,6 +128,9 @@ export function transformIncomeStatement(apiData: any): IncomeStatement[] {
     type: "net",
   };
 
+  console.log("Net income", netIncome);
+  console.log("Total expenses", totalExpenses);
+
   return [...revenues, totalRevenue, ...expenses, totalExpenses, netIncome];
 }
 

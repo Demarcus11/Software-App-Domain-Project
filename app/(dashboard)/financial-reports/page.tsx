@@ -61,8 +61,6 @@ const FinancialReportsPage = () => {
         endDate: isDateRange ? dateRange.end : dateRange.start,
       };
 
-      console.log(dateRange);
-
       // Set the endpoint based on selected report
       switch (selectedReport) {
         case "trial-balance":

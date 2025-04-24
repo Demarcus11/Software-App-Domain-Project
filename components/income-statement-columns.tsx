@@ -63,31 +63,4 @@ export const incomeStatementColumns: ColumnDef<IncomeStatement>[] = [
       );
     },
   },
-  {
-    accessorKey: "type",
-    header: "Type",
-    cell: ({ row }) => {
-      const type = row.getValue("type");
-      let displayType = "";
-
-      switch (type) {
-        case "revenue":
-          displayType = "Revenue";
-          break;
-        case "expense":
-          displayType = "Expense";
-          break;
-        case "total":
-          displayType = "Total";
-          break;
-        case "net":
-          displayType = "Net Income";
-          break;
-        default:
-          displayType = "Unknown";
-      }
-
-      return <div>{displayType}</div>;
-    },
-  },
 ];
