@@ -109,15 +109,6 @@ export function transformBalanceSheet(data: any): BalanceSheet[] {
     showAmount: true,
   });
 
-  // Liabilities Section
-  result.push({
-    name: "LIABILITIES",
-    balance: 0,
-    statementType: "Liability",
-    isSectionHeader: true,
-    showAmount: false,
-  });
-
   [
     ...data.liabilities.currentLiabilities.accounts,
     ...data.liabilities.nonCurrentLiabilities.accounts,
@@ -135,17 +126,9 @@ export function transformBalanceSheet(data: any): BalanceSheet[] {
     });
   });
 
-  result.push({
-    name: "TOTAL LIABILITIES",
-    balance: data.liabilities.total,
-    statementType: "Liability",
-    isTotal: true,
-    showAmount: true,
-  });
-
   // Equity Section
   result.push({
-    name: "EQUITY",
+    name: "EQUITY & LIABILITES",
     balance: 0,
     statementType: "Equity",
     isSectionHeader: true,
@@ -164,14 +147,6 @@ export function transformBalanceSheet(data: any): BalanceSheet[] {
       statementType: "Equity",
       showAmount: true,
     });
-  });
-
-  result.push({
-    name: "TOTAL EQUITY",
-    balance: data.equity.total,
-    statementType: "Equity",
-    isTotal: true,
-    showAmount: true,
   });
 
   // Grand Total
