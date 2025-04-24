@@ -240,45 +240,53 @@ const FinancialReportsPage = () => {
           {error ? (
             <p className="text-center">{error}</p>
           ) : selectedReport === "trial-balance" ? (
-            <TrialBalanceTable
-              data={trialBalanceData}
-              columns={trialBalanceColumns}
-              globalFilter={globalFilter}
-              onGlobalFilterChange={setGlobalFilter}
-              onExport={onDownload}
-              onEmail={handleEmail}
-              onPrint={handlePrint}
-            />
+            <div className="overflow-x-auto max-w-full">
+              <TrialBalanceTable
+                data={trialBalanceData}
+                columns={trialBalanceColumns}
+                globalFilter={globalFilter}
+                onGlobalFilterChange={setGlobalFilter}
+                onExport={onDownload}
+                onEmail={handleEmail}
+                onPrint={handlePrint}
+              />
+            </div>
           ) : selectedReport === "income-statement" ? (
-            <IncomeStatementTable
-              data={incomeStatementData}
-              columns={incomeStatementColumns}
-              globalFilter={globalFilter}
-              onGlobalFilterChange={setGlobalFilter}
-              onExport={onDownload}
-              onEmail={handleEmail}
-              onPrint={handlePrint}
-            />
+            <div className="overflow-x-auto max-w-full">
+              <IncomeStatementTable
+                data={incomeStatementData}
+                columns={incomeStatementColumns}
+                globalFilter={globalFilter}
+                onGlobalFilterChange={setGlobalFilter}
+                onExport={onDownload}
+                onEmail={handleEmail}
+                onPrint={handlePrint}
+              />
+            </div>
           ) : selectedReport === "balance-sheet" ? (
-            <BalanceSheetTable
-              data={balanceSheetData}
-              columns={balanceSheetColumns}
-              globalFilter={globalFilter}
-              onGlobalFilterChange={setGlobalFilter}
-              onExport={onDownload}
-              onEmail={handleEmail}
-              onPrint={handlePrint}
-            />
+            <div className="overflow-x-auto max-w-full">
+              <BalanceSheetTable
+                data={balanceSheetData}
+                columns={balanceSheetColumns}
+                globalFilter={globalFilter}
+                onGlobalFilterChange={setGlobalFilter}
+                onExport={onDownload}
+                onEmail={handleEmail}
+                onPrint={handlePrint}
+              />
+            </div>
           ) : selectedReport === "retained-earnings" ? (
-            <RetainedEarningsTable
-              data={retainedEarningsData}
-              columns={retainedEarningsColumns}
-              globalFilter={globalFilter}
-              onGlobalFilterChange={setGlobalFilter}
-              onExport={onDownload}
-              onEmail={handleEmail}
-              onPrint={handlePrint}
-            />
+            <div className="overflow-x-auto max-w-full">
+              <RetainedEarningsTable
+                data={retainedEarningsData}
+                columns={retainedEarningsColumns}
+                globalFilter={globalFilter}
+                onGlobalFilterChange={setGlobalFilter}
+                onExport={onDownload}
+                onEmail={handleEmail}
+                onPrint={handlePrint}
+              />
+            </div>
           ) : null}
         </div>
       </div>

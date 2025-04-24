@@ -83,7 +83,7 @@ export async function POST(req: Request) {
       const balance = sumTransactions(acc.transactions);
       return {
         name: acc.name,
-        balance,
+        balance: Math.abs(balance),
         category: acc.category.name,
       };
     });
@@ -93,8 +93,8 @@ export async function POST(req: Request) {
     const netIncome = totalRevenue - totalExpenses;
 
     return NextResponse.json({
-      totalRevenue,
-      totalExpenses,
+      totalRevenue: Math.abs(totalRevenue),
+      totalExpenses: Math.abs(totalExpenses),
       netIncome,
       revenues: revenueData,
       expenses: expenseData,
