@@ -16,11 +16,12 @@ export const retainedEarningsColumns: ColumnDef<RetainedEarnings>[] = [
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Total Revenue
+        Net Income
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => `$${Number(row.getValue("totalRevenue")).toFixed(2)}`,
+    cell: ({ row }) =>
+      `$${Number(row.getValue("retainedEarnings")).toFixed(2)}`,
   },
   {
     accessorKey: "totalExpenses",
@@ -29,11 +30,11 @@ export const retainedEarningsColumns: ColumnDef<RetainedEarnings>[] = [
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Total Expenses
+        Dividends
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => `$${Number(row.getValue("totalExpenses")).toFixed(2)}`,
+    cell: ({ row }) => `$0`,
   },
   {
     accessorKey: "retainedEarnings",
