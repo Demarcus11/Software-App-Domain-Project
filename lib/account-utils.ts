@@ -81,19 +81,13 @@ export function transformBalanceSheet(data: any): BalanceSheet[] {
     balance: 0,
     statementType: "Asset",
     isSectionHeader: true,
-    showAmount: false, // New property to control amount display
-  });
-
-  // Current Assets
-  result.push({
-    name: "Current Assets",
-    balance: data.assets.currentAssets.total,
-    statementType: "Asset",
-    isSectionHeader: true,
     showAmount: false,
   });
 
-  data.assets.currentAssets.accounts.forEach((account: any) => {
+  [
+    ...data.assets.currentAssets.accounts,
+    ...data.assets.nonCurrentAssets.accounts,
+  ].forEach((account: any) => {
     result.push({
       id: account.id,
       name: account.name,
@@ -105,45 +99,6 @@ export function transformBalanceSheet(data: any): BalanceSheet[] {
       statementType: "Asset",
       showAmount: true,
     });
-  });
-
-  result.push({
-    name: "Total Current Assets",
-    balance: data.assets.currentAssets.total,
-    statementType: "Asset",
-    isTotal: true,
-    showAmount: true,
-  });
-
-  // Non-Current Assets
-  result.push({
-    name: "Non-Current Assets",
-    balance: data.assets.nonCurrentAssets.total,
-    statementType: "Asset",
-    isSectionHeader: true,
-    showAmount: false,
-  });
-
-  data.assets.nonCurrentAssets.accounts.forEach((account: any) => {
-    result.push({
-      id: account.id,
-      name: account.name,
-      number: account.number,
-      balance: account.balance,
-      normalSide: account.normalSide,
-      order: account.order,
-      subcategory: account.subcategory,
-      statementType: "Asset",
-      showAmount: true,
-    });
-  });
-
-  result.push({
-    name: "Total Non-Current Assets",
-    balance: data.assets.nonCurrentAssets.total,
-    statementType: "Asset",
-    isTotal: true,
-    showAmount: true,
   });
 
   result.push({
@@ -163,16 +118,10 @@ export function transformBalanceSheet(data: any): BalanceSheet[] {
     showAmount: false,
   });
 
-  // Current Liabilities
-  result.push({
-    name: "Current Liabilities",
-    balance: data.liabilities.currentLiabilities.total,
-    statementType: "Liability",
-    isSectionHeader: true,
-    showAmount: false,
-  });
-
-  data.liabilities.currentLiabilities.accounts.forEach((account: any) => {
+  [
+    ...data.liabilities.currentLiabilities.accounts,
+    ...data.liabilities.nonCurrentLiabilities.accounts,
+  ].forEach((account: any) => {
     result.push({
       id: account.id,
       name: account.name,
@@ -184,45 +133,6 @@ export function transformBalanceSheet(data: any): BalanceSheet[] {
       statementType: "Liability",
       showAmount: true,
     });
-  });
-
-  result.push({
-    name: "Total Current Liabilities",
-    balance: data.liabilities.currentLiabilities.total,
-    statementType: "Liability",
-    isTotal: true,
-    showAmount: true,
-  });
-
-  // Non-Current Liabilities
-  result.push({
-    name: "Non-Current Liabilities",
-    balance: data.liabilities.nonCurrentLiabilities.total,
-    statementType: "Liability",
-    isSectionHeader: true,
-    showAmount: false,
-  });
-
-  data.liabilities.nonCurrentLiabilities.accounts.forEach((account: any) => {
-    result.push({
-      id: account.id,
-      name: account.name,
-      number: account.number,
-      balance: account.balance,
-      normalSide: account.normalSide,
-      order: account.order,
-      subcategory: account.subcategory,
-      statementType: "Liability",
-      showAmount: true,
-    });
-  });
-
-  result.push({
-    name: "Total Non-Current Liabilities",
-    balance: data.liabilities.nonCurrentLiabilities.total,
-    statementType: "Liability",
-    isTotal: true,
-    showAmount: true,
   });
 
   result.push({
