@@ -23,9 +23,7 @@ export async function POST(req: Request) {
     const [revenueAccounts, expenseAccounts] = await Promise.all([
       prisma.account.findMany({
         where: {
-          statement: {
-            name: "Revenue",
-          },
+          statementId: 4,
         },
         include: {
           category: true,
@@ -36,9 +34,7 @@ export async function POST(req: Request) {
       }),
       prisma.account.findMany({
         where: {
-          statement: {
-            name: "Expense",
-          },
+          statementId: 5,
         },
         include: {
           category: true,
