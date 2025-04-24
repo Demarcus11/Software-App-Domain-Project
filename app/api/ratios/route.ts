@@ -59,14 +59,33 @@ export async function GET() {
     const totalExpenses = accounts
       .filter((a) => a.statement.name === "Expense")
       .reduce((sum, a) => sum + a.balance, 0);
+    const totalAssets = accounts
+      .filter((a) => a.statement.name === "Asset")
+      .reduce((sum, a) => sum + a.balance, 0);
+    const inventory = accounts
+      .filter((a) => a.subcategory?.name === "Inventory")
+      .reduce((sum, a) => sum + a.balance, 0);
 
     // Calculate ratios
     const currentRatio =
       currentLiabilities !== 0 ? currentAssets / currentLiabilities : null;
-    const debtToEquity =
-      totalEquity !== 0 ? totalLiabilities / totalEquity : null;
     const netProfitMargin =
       totalRevenue !== 0 ? (totalRevenue - totalExpenses) / totalRevenue : null;
+    // Return on Assets = Net Profit / Total Assets
+    const returnOnAssets =
+      totalAssets !== 0 ? (totalRevenue - totalExpenses) / totalAssets : null;
+    // Return on Equity = Net Profit / Total Equity
+    const returnOnEquity =
+      totalEquity !== 0 ? (totalRevenue - totalExpenses) / totalEquity : null;
+
+    // Asset Turnover = Total Revenue (or Sales) / Total Assets
+    const assetTurnover = totalAssets !== 0 ? totalRevenue / totalAssets : null;
+
+    // Quick Ratio = (Current Assets - Inventory) / Current Liabilities
+    const quickRatio =
+      currentLiabilities !== 0
+        ? (currentAssets - inventory) / currentLiabilities
+        : null;
 
     const ratios = [
       {
@@ -78,14 +97,6 @@ export async function GET() {
         formula: "Current Assets / Current Liabilities",
       },
       {
-        name: "Debt to Equity",
-        value: debtToEquity,
-        status: getRatioStatusColor(debtToEquity),
-        numerator: totalLiabilities,
-        denominator: totalEquity,
-        formula: "Total Liabilities / Total Equity",
-      },
-      {
         name: "Net Profit Margin",
         value: netProfitMargin,
         status: getRatioStatusColor(netProfitMargin),
@@ -93,9 +104,39 @@ export async function GET() {
         denominator: totalRevenue,
         formula: "(Total Revenue - Total Expenses) / Total Revenue",
       },
+      {
+        name: "Return on Assets",
+        value: returnOnAssets,
+        status: getRatioStatusColor(returnOnAssets),
+        numerator: totalRevenue - totalExpenses,
+        denominator: totalAssets,
+        formula: "Net Profit / Total Assets",
+      },
+      {
+        name: "Quick Ratio",
+        value: quickRatio,
+        status: getRatioStatusColor(quickRatio),
+        numerator: currentAssets - inventory,
+        denominator: currentLiabilities,
+        formula: "(Current Assets - Inventory) / Current Liabilities",
+      },
+      {
+        name: "Return on Equity",
+        value: returnOnEquity,
+        status: getRatioStatusColor(returnOnEquity),
+        numerator: totalRevenue - totalExpenses,
+        denominator: totalEquity,
+        formula: "Net Profit / Total Equity",
+      },
+      {
+        name: "Asset Turnover",
+        value: assetTurnover,
+        status: getRatioStatusColor(assetTurnover),
+        numerator: totalRevenue,
+        denominator: totalAssets,
+        formula: "Total Revenue / Total Assets",
+      },
     ];
-
-    console.log(ratios);
 
     return NextResponse.json(ratios);
   } catch (error) {
