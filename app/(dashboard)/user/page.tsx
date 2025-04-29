@@ -194,9 +194,9 @@ export default function UserPage() {
       </section>
 
       {/* Important Messages */}
+      <h2 className="text-xl font-semibold mb-4">Important Messages</h2>
       {messages.length > 0 && (
         <section>
-          <h2 className="text-xl font-semibold mb-4">Important Messages</h2>
           <ul className="space-y-2">
             {messages.map((msg, index) => (
               <li

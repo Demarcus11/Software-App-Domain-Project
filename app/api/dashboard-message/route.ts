@@ -32,7 +32,7 @@ export async function POST(req: Request) {
           passwordExpiresAt: {
             lte: new Date(),
           },
-          isActive: true,
+          isActive: false,
         },
       }),
     ]);

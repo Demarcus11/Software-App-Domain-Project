@@ -69,7 +69,6 @@ export const generatePrNumber = async () => {
   return `PR-${nextNumber}`;
 };
 
-// Add this to your page.tsx or create a separate utility file
 export function transformBalanceSheet(data: any): BalanceSheet[] {
   if (!data) return [];
 
