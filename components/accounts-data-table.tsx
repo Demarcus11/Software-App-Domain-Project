@@ -23,7 +23,7 @@ import {
 
 import { Input } from "@/components/ui/input";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { useRouter } from "next/navigation";
 import {
@@ -121,6 +121,28 @@ export function AccountsDataTable<TData, TValue>({
     setIsDialogOpen(false);
   };
 
+  const [role, setRole] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const response = await fetch("/api/user");
+
+        if (!response.ok) {
+          console.error("Failed to fetch user details");
+          return;
+        }
+
+        const userDetails = await response.json();
+        setRole(userDetails.role);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchUserDetails();
+  }, []);
+
   return (
     <>
       <div className="flex items-center justify-between py-4">
@@ -148,9 +170,11 @@ export function AccountsDataTable<TData, TValue>({
               />
             </DialogContent>
           </Dialog>
-          <Button asChild>
-            <Link href="/chart-of-accounts/new">New Account</Link>
-          </Button>
+          {role === "ADMIN" && (
+            <Button asChild>
+              <Link href="/chart-of-accounts/new">New Account</Link>
+            </Button>
+          )}
         </div>
       </div>
 
