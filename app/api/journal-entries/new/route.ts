@@ -82,6 +82,8 @@ export async function POST(request: Request) {
       );
     }
 
+    console.log("Bello");
+
     // 6. Create journal entry with transactions atomically
     const result = await prisma.$transaction(async (prisma) => {
       const journalEntry = await prisma.journalEntry.create({

@@ -216,7 +216,7 @@ const Navbar = () => {
   const NotificationPopover = () => {
     const markAsRead = async (id: number) => {
       try {
-        const response = await fetch(`/api/notifications/${id}/read`, {
+        const response = await fetch(`/api/notifications/${id}`, {
           method: "PATCH",
           credentials: "include",
         });
@@ -237,57 +237,66 @@ const Navbar = () => {
     };
 
     return (
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="relative"
-            onClick={() => setOpen(!open)}
-          >
-            <Bell className="h-5 w-5" />
-            {unreadCount > 0 && (
-              <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
-                {unreadCount}
-              </span>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-80">
-          <div className="space-y-2">
-            <h4 className="font-medium leading-none">Notifications</h4>
-            {notifications.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No new notifications.
-              </p>
-            ) : (
-              notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={`p-2 rounded ${
-                    notification.isRead ? "bg-gray-100" : "bg-white"
-                  }`}
+      <TooltipProvider>
+        <Tooltip>
+          <Popover open={open} onOpenChange={setOpen}>
+            <TooltipTrigger asChild>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative"
+                  onClick={() => setOpen(!open)}
                 >
-                  <p className="text-sm">{notification.message}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(notification.createdAt).toLocaleString()}
-                  </p>
-                  {!notification.isRead && (
-                    <Button
-                      variant="link"
-                      size="sm"
-                      className="p-0"
-                      onClick={() => markAsRead(notification.id)}
-                    >
-                      Mark as read
-                    </Button>
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                      {unreadCount}
+                    </span>
                   )}
-                </div>
-              ))
-            )}
-          </div>
-        </PopoverContent>
-      </Popover>
+                </Button>
+              </PopoverTrigger>
+            </TooltipTrigger>
+            <PopoverContent className="w-80">
+              <div className="space-y-2">
+                <h4 className="font-medium leading-none">Notifications</h4>
+                {notifications.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No new notifications.
+                  </p>
+                ) : (
+                  notifications.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className={`p-2 rounded ${
+                        notification.isRead ? "bg-gray-100" : "bg-white"
+                      }`}
+                    >
+                      <p className="text-sm">{notification.message}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(notification.createdAt).toLocaleString()}
+                      </p>
+                      {!notification.isRead && (
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="p-0"
+                          onClick={() => markAsRead(notification.id)}
+                        >
+                          Mark as read
+                        </Button>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
+          <TooltipContent className="bg-neutral-800">
+            Notifications
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     );
   };
 

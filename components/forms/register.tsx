@@ -219,7 +219,7 @@ const RegisterForm = () => {
               <FormLabel>{`Security Question ${index + 1}`}</FormLabel>
               <FormControl>
                 <Select
-                  key={`security-question-${index}`} // Stable key
+                  key={`security-question-${index}`}
                   onValueChange={field.onChange}
                   value={field.value}
                 >
@@ -380,14 +380,146 @@ const RegisterForm = () => {
                   )}
                 />
 
-                {[0, 1, 2].map((index) => (
+                <FormField
+                  control={form.control}
+                  name={`securityQuestions.0.questionId`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{`Security Question 1`}</FormLabel>
+                      <FormControl>
+                        <Select
+                          key={`security-question-1`}
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a security question" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {securityQuestions.map((question) => (
+                              <SelectItem
+                                key={question.id}
+                                value={String(question.id)}
+                              >
+                                {question.question}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name={`securityQuestions.0.answer`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{`Answer for security question 1`}</FormLabel>
+                      <FormControl>
+                        <PasswordInput {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name={`securityQuestions.1.questionId`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{`Security Question 2`}</FormLabel>
+                      <FormControl>
+                        <Select
+                          key={`security-question-2`}
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a security question" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {securityQuestions.map((question) => (
+                              <SelectItem
+                                key={question.id}
+                                value={String(question.id)}
+                              >
+                                {question.question}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name={`securityQuestions.1.answer`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{`Answer for security question 2`}</FormLabel>
+                      <FormControl>
+                        <PasswordInput {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name={`securityQuestions.2.questionId`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{`Security Question 3`}</FormLabel>
+                      <FormControl>
+                        <Select
+                          key={`security-question-3`}
+                          onValueChange={field.onChange}
+                          value={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a security question" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {securityQuestions.map((question) => (
+                              <SelectItem
+                                key={question.id}
+                                value={String(question.id)}
+                              >
+                                {question.question}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name={`securityQuestions.2.answer`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{`Answer for security question 3`}</FormLabel>
+                      <FormControl>
+                        <PasswordInput {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                {/* {[0, 1, 2].map((index) => (
                   <SecurityQuestionSection
                     key={`security-section-${index}`} // Stable key
                     form={form}
                     securityQuestions={securityQuestions}
                     index={index}
                   />
-                ))}
+                ))} */}
 
                 <FormField
                   control={form.control}
