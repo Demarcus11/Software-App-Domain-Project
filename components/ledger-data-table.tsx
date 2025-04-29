@@ -22,8 +22,6 @@ import {
 } from "@/components/ui/table";
 
 import { Input } from "@/components/ui/input";
-import { DateRange } from "react-day-picker";
-import { DateRangePicker } from "./ui/date-range-picker";
 import React from "react";
 import { useRouter } from "next/navigation";
 import { ExtendedTransaction } from "@/app/(dashboard)/ledger/[id]/page";
@@ -40,7 +38,6 @@ export function LedgerDataTable({ columns, data }: DataTableProps) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
   const [debitFilter, setDebitFilter] = React.useState<string>("");
   const [creditFilter, setCreditFilter] = React.useState<string>("");
   const [descriptionFilter, setDescriptionFilter] = React.useState<string>("");
@@ -67,7 +64,7 @@ export function LedgerDataTable({ columns, data }: DataTableProps) {
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
+    getFilteredRowModel: getFilteredRowModel(), // Make sure this is included
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
@@ -82,17 +79,6 @@ export function LedgerDataTable({ columns, data }: DataTableProps) {
 
   React.useEffect(() => {
     const filters = [];
-
-    // Date range filter
-    if (dateRange?.from || dateRange?.to) {
-      filters.push({
-        id: "date",
-        value: {
-          from: dateRange.from,
-          to: dateRange.to,
-        },
-      });
-    }
 
     // Debit filter
     if (debitFilter) {
@@ -119,7 +105,7 @@ export function LedgerDataTable({ columns, data }: DataTableProps) {
     }
 
     table.setColumnFilters(filters);
-  }, [dateRange, debitFilter, creditFilter, descriptionFilter, table]);
+  }, [debitFilter, creditFilter, descriptionFilter, table]);
 
   return (
     <>
@@ -153,12 +139,6 @@ export function LedgerDataTable({ columns, data }: DataTableProps) {
               className="max-w-[200px]"
             />
           </div>
-        </div>
-        <div className="flex gap-4">
-          <DateRangePicker
-            dateRange={dateRange}
-            onDateRangeChange={setDateRange}
-          />
         </div>
       </div>
 

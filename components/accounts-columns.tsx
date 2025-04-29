@@ -1,7 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Account } from "@prisma/client";
-import { ArrowUpDown, MoreHorizontal } from "lucide-react";
-import { format } from "date-fns";
+import { ArrowUpDown, MoreHorizontal, CalendarIcon } from "lucide-react";
+import { format, addDays } from "date-fns";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
 import {
@@ -15,6 +15,66 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ExtendedAccount } from "@/app/(dashboard)/chart-of-accounts/page";
 import { Checkbox } from "./ui/checkbox";
+import { DateRange } from "react-day-picker";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+
+const DateFilter: React.FC<{ column: any }> = ({ column }) => {
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: undefined,
+    to: undefined,
+  });
+
+  useEffect(() => {
+    if (date?.from && date?.to) {
+      column.setFilterValue({
+        from: date.from,
+        to: date.to,
+      });
+    } else {
+      column.setFilterValue(undefined);
+    }
+  }, [date, column]);
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant={"outline"}
+          className="w-[240px] justify-start text-left font-normal"
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {date?.from ? (
+            date.to ? (
+              <>
+                {format(date.from, "MMM dd, yyyy")} -{" "}
+                {format(date.to, "MMM dd, yyyy")}
+              </>
+            ) : (
+              format(date.from, "MMM dd, yyyy")
+            )
+          ) : (
+            <span>Filter by date</span>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          initialFocus
+          mode="range"
+          defaultMonth={date?.from}
+          selected={date}
+          onSelect={setDate}
+          numberOfMonths={2}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+};
 
 export const useColumns = () => {
   const [role, setRole] = useState<string | undefined>(undefined);
@@ -155,19 +215,44 @@ export const useColumns = () => {
       accessorKey: "createdAt",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="pl-0"
-          >
-            Created At
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
+          <div className="flex flex-col space-y-2">
+            <Button
+              variant="ghost"
+              onClick={() =>
+                column.toggleSorting(column.getIsSorted() === "asc")
+              }
+              className="pl-0"
+            >
+              Created At
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+            <DateFilter column={column} />
+          </div>
         );
       },
       cell: ({ row }) => {
         const createdAt: Date = row.getValue("createdAt");
         return format(new Date(createdAt), "MMM dd, yyyy");
+      },
+      filterFn: (row, columnId, filterValue) => {
+        const date = new Date(row.getValue(columnId));
+        const { from, to } = filterValue || {};
+
+        if (!from && !to) return true;
+
+        if (from && !to) {
+          return date >= from;
+        }
+
+        if (!from && to) {
+          return date <= addDays(to, 1);
+        }
+
+        if (from && to) {
+          return date >= from && date <= addDays(to, 1);
+        }
+
+        return true;
       },
     },
     {
@@ -212,7 +297,7 @@ export const useColumns = () => {
               >
                 View account
               </DropdownMenuItem>
-              {role === "ADMIN" && ( // Only show "Edit account" for ADMIN
+              {role === "ADMIN" && (
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();

@@ -22,9 +22,7 @@ import {
 } from "@/components/ui/table";
 
 import { Input } from "@/components/ui/input";
-
 import React, { useEffect, useState } from "react";
-
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -53,14 +51,12 @@ export function AccountsDataTable<TData, TValue>({
   const [selectedEmails, setSelectedEmails] = React.useState<string[]>([]);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
-  // Custom filter function that checks all relevant columns
   const multiColumnFilter: FilterFn<any> = (row, columnId, value) => {
     const accountNumber = String(row.getValue("number") || "");
     const accountName = String(row.getValue("name") || "");
     const categoryName = String(row.getValue("categoryName") || "");
     const statementName = String(row.getValue("statementName") || "");
 
-    // For balance, we need to handle numeric values
     let balance = "";
     const balanceValue = row.getValue("balance");
     if (balanceValue !== null && balanceValue !== undefined) {
@@ -99,11 +95,9 @@ export function AccountsDataTable<TData, TValue>({
         .getSelectedRowModel()
         .rows.map((row) => (row.original as any).userId);
 
-      // Fetch all employees
       const response = await fetch("/api/employees");
       const allEmployees = await response.json();
 
-      // Filter client-side
       const selectedEmails = allEmployees
         .filter((user: { id: string; email: string }) =>
           userIds.includes(user.id)
